@@ -4,58 +4,140 @@
   <h3>ทดสอบ AI Matching</h3>
 
   <label>ชื่อโครงการ (ไม่บังคับ)</label><br>
-  <input id="title" style="width:100%; padding:8px; margin-bottom:12px;"
-    placeholder="เช่น โครงการพัฒนา AI เพื่อการเกษตร"/><br>
+  <input
+    id="title"
+    style="width:100%; padding:8px; margin-bottom:12px;"
+    placeholder="เช่น โครงการพัฒนา AI เพื่อการเกษตร"
+  ><br>
 
   <label>Abstract โครงการวิจัย</label><br>
-  <textarea id="abstract" style="width:100%; height:200px; padding:8px; margin-bottom:12px;"
-    placeholder="วาง abstract หรือบทคัดย่อโครงการที่นี่..."></textarea><br>
+  <textarea
+    id="abstract"
+    style="width:100%; height:200px; padding:8px; margin-bottom:12px;"
+    placeholder="วาง abstract หรือบทคัดย่อโครงการที่นี่..."
+  ></textarea><br>
 
-  <button onclick="match()"
-    style="padding:10px 24px; background:#0284c7; color:white; border:none; border-radius:6px; cursor:pointer;">
+  <button
+    id="matchButton"
+    onclick="match()"
+    style="padding:10px 24px; background:#0284c7; color:white; border:none; border-radius:6px; cursor:pointer;"
+  >
     วิเคราะห์ความเหมาะสม
   </button>
 
   <div id="result" style="margin-top:20px;"></div>
 
   <script>
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
+    }
+
+    function getScoreColor(score) {
+      if (score >= 70) return '#16a34a'
+      if (score >= 40) return '#d97706'
+      return '#dc2626'
+    }
+
     async function match() {
-      const abstract = document.getElementById('abstract').value
-      const proposalTitle = document.getElementById('title').value
+      const abstract = document.getElementById('abstract').value.trim()
+      const proposalTitle = document.getElementById('title').value.trim()
+      const resultElement = document.getElementById('result')
+      const button = document.getElementById('matchButton')
 
       if (!abstract) {
         alert('กรุณาใส่ abstract ก่อนครับ')
         return
       }
 
-      document.getElementById('result').innerHTML = '<p>กำลังวิเคราะห์...</p>'
+      button.disabled = true
+      button.style.opacity = '0.7'
+      button.style.cursor = 'not-allowed'
 
-      const res = await fetch('/api/match', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ abstract, proposalTitle })
-      })
-      const data = await res.json()
+      resultElement.innerHTML = '<p>กำลังวิเคราะห์...</p>'
 
-      if (!data.success) {
-        document.getElementById('result').innerHTML = `<p style="color:red">${data.error}</p>`
-        return
-      }
+      try {
+        const response = await fetch('/api/match', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            abstract,
+            proposalTitle
+          })
+        })
 
-      const html = data.results.map(r => `
-        <div style="border:1px solid #e2e8f0; border-radius:8px; padding:16px; margin-bottom:12px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <b>${r.funding_name}</b>
-            <span style="font-size:1.4rem; font-weight:bold; color:${r.score >= 70 ? '#16a34a' : r.score >= 40 ? '#d97706' : '#dc2626'}">
-              ${r.score}%
-            </span>
+        const data = await response.json()
+
+        if (!response.ok || !data.success) {
+          resultElement.innerHTML = `
+            <p style="color:#dc2626;">
+              ${escapeHtml(data.error || 'ไม่สามารถวิเคราะห์ข้อมูลได้')}
+            </p>
+          `
+          return
+        }
+
+        if (!Array.isArray(data.results) || data.results.length === 0) {
+          resultElement.innerHTML = `
+            <p style="color:#d97706;">
+              ไม่พบผลการจับคู่แหล่งทุน
+            </p>
+          `
+          return
+        }
+
+        const html = data.results.map((r, i) => `
+          <div style="border:1px solid #e2e8f0; border-radius:8px; padding:16px; margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:8px;">
+              <div>
+                <div style="color:#64748b; font-size:0.85rem; margin-bottom:4px;">
+                  อันดับ ${i + 1}
+                </div>
+                <b style="font-size:1.1rem;">
+                  ${escapeHtml(r.funding_name)}
+                </b>
+              </div>
+
+              <div style="text-align:center; min-width:85px;">
+                <div style="font-size:2rem; font-weight:bold; color:${getScoreColor(Number(r.score))};">
+                  ${Number(r.score) || 0}%
+                </div>
+                <div style="font-size:0.75rem; color:#64748b;">
+                  ความเหมาะสม
+                </div>
+              </div>
+            </div>
+
+            <hr style="border:0; border-top:1px solid #f1f5f9; margin:10px 0;">
+
+            <p style="margin:8px 0; color:#166534;">
+              <b>เหมาะสม:</b> ${escapeHtml(r.reason_match)}
+            </p>
+
+            <p style="margin:8px 0 0; color:#b91c1c;">
+              <b>ข้อจำกัด:</b> ${escapeHtml(r.reason_mismatch)}
+            </p>
           </div>
-          <p style="color:#16a34a; margin:8px 0 4px;"><b>เหมาะสม:</b> ${r.reason_match}</p>
-          <p style="color:#dc2626; margin:4px 0;"><b>ข้อจำกัด:</b> ${r.reason_mismatch}</p>
-        </div>
-      `).join('')
+        `).join('')
 
-      document.getElementById('result').innerHTML = html
+        resultElement.innerHTML = html
+      } catch (error) {
+        resultElement.innerHTML = `
+          <p style="color:#dc2626;">
+            เกิดข้อผิดพลาดในการเชื่อมต่อ: ${escapeHtml(error.message)}
+          </p>
+        `
+      } finally {
+        button.disabled = false
+        button.style.opacity = '1'
+        button.style.cursor = 'pointer'
+      }
     }
   </script>
 </body>
