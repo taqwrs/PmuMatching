@@ -1,31 +1,39 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { supabase } from "@/lib/supabase";
+import { GoogleGenerativeAI } from '@google/generative-ai'
+import { supabase } from '@/lib/supabase'
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
 
 export async function POST(request) {
   try {
-    const { url, name } = await request.json();
+    const { url, name } = await request.json()
 
     if (!url) {
-      return Response.json({ success: false, error: "กรุณาใส่ URL" });
+      return Response.json({ success: false, error: 'กรุณาใส่ URL' })
     }
 
-    // ดึง HTML จาก URL
-    const fetchRes = await fetch(url);
-    const html = await fetchRes.text();
+    // ดึง HTML จาก URL รองรับภาษาไทย
+    const fetchRes = await fetch(url)
+    const buffer = await fetchRes.arrayBuffer()
+    const decoder = new TextDecoder('tis-620')
+    let html = decoder.decode(buffer)
+
+    // ถ้าถอดรหัสแล้วยังเป็น ?? ลองใช้ utf-8 แทน
+    if (html.includes('???') || html.includes('þÿ')) {
+      const decoder2 = new TextDecoder('utf-8')
+      html = decoder2.decode(buffer)
+    }
 
     // ตัด HTML tag ออกให้เหลือแต่ text
     const plainText = html
-      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
-      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/\s+/g, " ")
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
       .trim()
-      .slice(0, 8000);
+      .slice(0, 8000)
 
     // ส่งให้ Gemini สกัดข้อมูล
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
     const prompt = `
 จากข้อความด้านล่างนี้เป็นข้อมูลแหล่งทุนวิจัย
@@ -40,34 +48,35 @@ export async function POST(request) {
 
 ข้อความ:
 ${plainText}
-`;
+`
 
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
+    const result = await model.generateContent(prompt)
+    const text = result.response.text()
 
     // แปลง JSON
-    const clean = text.replace(/```json|```/g, "").trim();
-    const extracted = JSON.parse(clean);
+    const clean = text.replace(/```json|```/g, '').trim()
+    const extracted = JSON.parse(clean)
 
     // บันทึกลง Supabase
     const { data, error } = await supabase
-      .from("funding_sources")
+      .from('funding_sources')
       .insert({
         name: name || extracted.name,
         url: url,
         requirements: extracted.requirements,
         deadline: extracted.deadline,
-        status: extracted.status || "open",
+        status: extracted.status || 'open'
       })
       .select()
-      .single();
+      .single()
 
     if (error) {
-      return Response.json({ success: false, error: error.message });
+      return Response.json({ success: false, error: error.message })
     }
 
-    return Response.json({ success: true, data });
+    return Response.json({ success: true, data })
+
   } catch (err) {
-    return Response.json({ success: false, error: err.message });
+    return Response.json({ success: false, error: err.message })
   }
 }
