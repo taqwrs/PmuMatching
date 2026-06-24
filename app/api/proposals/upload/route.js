@@ -1,4 +1,4 @@
-import pdf from 'pdf-parse/lib/pdf-parse.js'
+import pdf from 'pdf-parse'
 import { supabase } from '@/lib/supabase'
 
 export const runtime = 'nodejs'
