@@ -47,8 +47,8 @@ export async function POST(request) {
 
     console.log('Text preview:', plainText.slice(0, 200))
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
-
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+    
     const prompt = `
 Extract research funding information from the text below.
 Reply ONLY with a JSON object with these fields:
