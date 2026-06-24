@@ -38,7 +38,10 @@ export async function POST(request) {
     try {
       extracted = await pdf(buffer)
     } catch {
-      return Response.json({ success: false, error: 'ไม่สามารถอ่าน PDF ได้ กรุณาตรวจสอบว่าไฟล์ไม่ได้ถูกล็อก' }, { status: 422 })
+      return Response.json({
+        success: false,
+        error: 'ไม่สามารถอ่าน PDF ได้ กรุณาตรวจสอบว่าไฟล์ไม่ได้ถูกล็อก'
+      }, { status: 422 })
     }
 
     const text = cleanText(extracted.text)
@@ -50,7 +53,6 @@ export async function POST(request) {
       }, { status: 422 })
     }
 
-    // บันทึกลง Supabase ถ้ามีชื่อโครงการ
     if (title) {
       const cleanTitle = cleanText(title, 500)
       const { data, error } = await supabase
