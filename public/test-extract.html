@@ -35,7 +35,12 @@
       <small style="color:#64748b;">รองรับไฟล์ TXT ขนาดไม่เกิน 5 MB</small>
     </div>
     <input type="file" id="fileInput" accept=".txt,text/plain" style="display:none;">
-    <p id="filename" style="color:#0284c7; margin-top:8px;"></p>
+    <div style="display:flex; align-items:center; gap:10px; margin-top:8px; flex-wrap:wrap;">
+      <p id="filename" style="color:#0284c7; margin:0;"></p>
+      <button id="resetFileBtn" type="button" onclick="resetFileUpload()" style="display:none; padding:6px 12px; background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer;">
+        ล้างไฟล์
+      </button>
+    </div>
   </div>
 
   <br>
@@ -67,12 +72,17 @@
 
       // แก้จุดที่ 3: ล้างค่าไฟล์เมื่อ switch mode
       if (isTextMode) {
-        fileBase64 = ''
-        fileType = ''
-        fileReady = false
-        document.getElementById('filename').textContent = ''
-        document.getElementById('fileInput').value = ''
+        resetFileUpload()
       }
+    }
+
+    function resetFileUpload() {
+      fileBase64 = ''
+      fileType = ''
+      fileReady = false
+      document.getElementById('fileInput').value = ''
+      document.getElementById('filename').textContent = ''
+      document.getElementById('resetFileBtn').style.display = 'none'
     }
 
     document.getElementById('dropzone').addEventListener('click', () => {
@@ -104,11 +114,14 @@
     })
 
     function readFile(file) {
+      resetFileUpload()
+
       const isTextFile = file.type === 'text/plain' || file.name.toLowerCase().endsWith('.txt')
       if (!isTextFile) { alert('ขณะนี้รองรับเฉพาะไฟล์ TXT เท่านั้น'); return }
       if (file.size > MAX_FILE_SIZE) { alert('ไฟล์มีขนาดใหญ่เกิน 5 MB'); return }
 
       document.getElementById('filename').textContent = `กำลังอ่านไฟล์: ${file.name}`
+      document.getElementById('resetFileBtn').style.display = 'inline-block'
       fileBase64 = ''
       fileType = 'text/plain'
       fileReady = false  // รีเซ็ต flag ก่อนอ่านใหม่
@@ -122,10 +135,7 @@
       }
 
       reader.onerror = () => {
-        fileBase64 = ''
-        fileType = ''
-        fileReady = false
-        document.getElementById('filename').textContent = ''
+        resetFileUpload()
         alert('ไม่สามารถอ่านไฟล์ได้')
       }
 

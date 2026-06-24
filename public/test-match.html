@@ -31,9 +31,14 @@
       <small style="color:#64748b;">รองรับ PDF ที่ copy text ได้ ขนาดไม่เกิน 10 MB</small>
     </div>
     <input type="file" id="fileInput" accept=".pdf,application/pdf" style="display:none;">
-    <p id="filename" style="color:#0284c7; margin-top:8px;"></p>
+    <div style="display:flex; align-items:center; gap:10px; margin-top:8px; flex-wrap:wrap;">
+      <p id="filename" style="color:#0284c7; margin:0;"></p>
+      <button id="resetFileBtn" type="button" onclick="resetFileUpload()" style="display:none; padding:6px 12px; background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer;">
+        ล้างไฟล์
+      </button>
+    </div>
     <div id="extracted-preview" style="display:none; margin-top:10px;">
-      <label style="font-size:0.85rem; color:#64748b;">ข้อความที่ถอดได้จาก PDF (ตัวอย่าง 300 ตัวอักษรแรก)</label>
+      <label style="font-size:0.85rem; color:#64748b;">ข้อความที่ถอดได้จาก PDF (ตัวอย่างบางส่วน)</label>
       <pre id="preview-text"
         style="background:#f1f5f9; padding:10px; border-radius:6px; font-size:0.8rem; white-space:pre-wrap; max-height:120px; overflow:auto;"></pre>
     </div>
@@ -73,12 +78,18 @@
       document.getElementById('btn-file').style.background = isText ? '#e2e8f0' : '#0284c7'
       document.getElementById('btn-file').style.color = isText ? 'black' : 'white'
       if (isText) {
-        pdfText = ''
-        fileReady = false
-        document.getElementById('filename').textContent = ''
-        document.getElementById('fileInput').value = ''
-        document.getElementById('extracted-preview').style.display = 'none'
+        resetFileUpload()
       }
+    }
+
+    function resetFileUpload() {
+      pdfText = ''
+      fileReady = false
+      document.getElementById('fileInput').value = ''
+      document.getElementById('filename').textContent = ''
+      document.getElementById('preview-text').textContent = ''
+      document.getElementById('extracted-preview').style.display = 'none'
+      document.getElementById('resetFileBtn').style.display = 'none'
     }
 
     document.getElementById('dropzone').addEventListener('click', () => {
@@ -106,6 +117,8 @@
     })
 
     async function readFile(file) {
+      resetFileUpload()
+
       if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
         alert('รองรับเฉพาะไฟล์ PDF')
         return
@@ -116,6 +129,7 @@
       }
 
       document.getElementById('filename').textContent = `กำลังอ่าน: ${file.name}`
+      document.getElementById('resetFileBtn').style.display = 'inline-block'
       document.getElementById('extracted-preview').style.display = 'none'
       pdfText = ''
       fileReady = false
@@ -132,7 +146,7 @@
           const data = await res.json()
 
           if (!data.success) {
-            document.getElementById('filename').textContent = ''
+            resetFileUpload()
             alert(data.error || 'ไม่สามารถอ่าน PDF ได้')
             return
           }
@@ -144,7 +158,7 @@
           document.getElementById('extracted-preview').style.display = 'block'
 
         } catch (err) {
-          document.getElementById('filename').textContent = ''
+          resetFileUpload()
           alert('เกิดข้อผิดพลาดในการอ่าน PDF: ' + err.message)
         }
       }
