@@ -1,98 +1,123 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<body style="font-family:sans-serif; padding:20px; max-width:700px;">
-  <h3>ทดสอบ AI Matching</h3>
+  <body style="font-family: sans-serif; padding: 20px; max-width: 700px">
+    <h3>ทดสอบ AI Matching</h3>
 
-  <label>ชื่อโครงการ (ไม่บังคับ)</label><br>
-  <input
-    id="title"
-    style="width:100%; padding:8px; margin-bottom:12px;"
-    placeholder="เช่น โครงการพัฒนา AI เพื่อการเกษตร"
-  ><br>
+    <label>ชื่อโครงการ (ไม่บังคับ)</label><br />
+    <input
+      id="title"
+      style="width: 100%; padding: 8px; margin-bottom: 12px"
+      placeholder="เช่น โครงการพัฒนา AI เพื่อการเกษตร"
+    /><br />
 
-  <label>Abstract โครงการวิจัย</label><br>
-  <textarea
-    id="abstract"
-    style="width:100%; height:200px; padding:8px; margin-bottom:12px;"
-    placeholder="วาง abstract หรือบทคัดย่อโครงการที่นี่..."
-  ></textarea><br>
+    <label>Abstract โครงการวิจัย</label><br />
+    <textarea
+      id="abstract"
+      style="width: 100%; height: 200px; padding: 8px; margin-bottom: 12px"
+      placeholder="วาง abstract หรือบทคัดย่อโครงการที่นี่..."
+    ></textarea
+    ><br />
 
-  <button
-    id="matchButton"
-    onclick="match()"
-    style="padding:10px 24px; background:#0284c7; color:white; border:none; border-radius:6px; cursor:pointer;"
-  >
-    วิเคราะห์ความเหมาะสม
-  </button>
+    <button
+      id="matchButton"
+      onclick="match()"
+      style="
+        padding: 10px 24px;
+        background: #0284c7;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+      "
+    >
+      วิเคราะห์ความเหมาะสม
+    </button>
 
-  <div id="result" style="margin-top:20px;"></div>
+    <div id="result" style="margin-top: 20px"></div>
 
-  <script>
-    function escapeHtml(value) {
-      return String(value || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;')
-    }
-
-    function getScoreColor(score) {
-      if (score >= 70) return '#16a34a'
-      if (score >= 40) return '#d97706'
-      return '#dc2626'
-    }
-
-    async function match() {
-      const abstract = document.getElementById('abstract').value.trim()
-      const proposalTitle = document.getElementById('title').value.trim()
-      const resultElement = document.getElementById('result')
-      const button = document.getElementById('matchButton')
-
-      if (!abstract) {
-        alert('กรุณาใส่ abstract ก่อนครับ')
-        return
+    <script>
+      function escapeHtml(value) {
+        return String(value || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
       }
 
-      button.disabled = true
-      button.style.opacity = '0.7'
-      button.style.cursor = 'not-allowed'
+      function getScoreColor(score) {
+        if (score >= 70) return "#16a34a";
+        if (score >= 40) return "#d97706";
+        return "#dc2626";
+      }
 
-      resultElement.innerHTML = '<p>กำลังวิเคราะห์...</p>'
+      const MAX_ABSTRACT_CHARS = 12000;
 
-      try {
-        const response = await fetch('/api/match', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            abstract,
-            proposalTitle
-          })
-        })
+      async function match() {
+        const abstract = document.getElementById("abstract").value.trim();
+        const proposalTitle = document.getElementById("title").value.trim();
 
-        const data = await response.json()
-
-        if (!response.ok || !data.success) {
-          resultElement.innerHTML = `
-            <p style="color:#dc2626;">
-              ${escapeHtml(data.error || 'ไม่สามารถวิเคราะห์ข้อมูลได้')}
-            </p>
-          `
-          return
+        if (!abstract) {
+          alert("กรุณาใส่ abstract ก่อนครับ");
+          return;
         }
 
-        if (!Array.isArray(data.results) || data.results.length === 0) {
-          resultElement.innerHTML = `
+        // แก้จุดที่ 1
+        if (abstract.length > MAX_ABSTRACT_CHARS) {
+          const confirm = window.confirm(
+            `abstract ยาวเกิน ${MAX_ABSTRACT_CHARS.toLocaleString()} ตัวอักษร ระบบจะตัดข้อความส่วนเกินออกอัตโนมัติ\n\nต้องการดำเนินการต่อไหม?`,
+          );
+          if (!confirm) return;
+        }
+        const resultElement = document.getElementById("result");
+        const button = document.getElementById("matchButton");
+
+        if (!abstract) {
+          alert("กรุณาใส่ abstract ก่อนครับ");
+          return;
+        }
+
+        button.disabled = true;
+        button.style.opacity = "0.7";
+        button.style.cursor = "not-allowed";
+
+        resultElement.innerHTML = "<p>กำลังวิเคราะห์...</p>";
+
+        try {
+          const response = await fetch("/api/match", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              abstract,
+              proposalTitle,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok || !data.success) {
+            resultElement.innerHTML = `
+            <p style="color:#dc2626;">
+              ${escapeHtml(data.error || "ไม่สามารถวิเคราะห์ข้อมูลได้")}
+            </p>
+          `;
+            return;
+          }
+
+          if (!Array.isArray(data.results) || data.results.length === 0) {
+            resultElement.innerHTML = `
             <p style="color:#d97706;">
               ไม่พบผลการจับคู่แหล่งทุน
             </p>
-          `
-          return
-        }
+          `;
+            return;
+          }
 
-        const html = data.results.map((r, i) => `
+          const html = data.results
+            .map(
+              (r, i) => `
           <div style="border:1px solid #e2e8f0; border-radius:8px; padding:16px; margin-bottom:12px;">
             <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:8px;">
               <div>
@@ -105,8 +130,8 @@
               </div>
 
               <div style="text-align:center; min-width:85px;">
-                <div style="font-size:2rem; font-weight:bold; color:${getScoreColor(Number(r.score))};">
-                  ${Number(r.score) || 0}%
+                <div style="font-size:2rem; font-weight:bold; color:${getScoreColor(Math.round(Number(r.score)))};">
+                  ${Math.round(Number(r.score) || 0)}%
                 </div>
                 <div style="font-size:0.75rem; color:#64748b;">
                   ความเหมาะสม
@@ -124,21 +149,23 @@
               <b>ข้อจำกัด:</b> ${escapeHtml(r.reason_mismatch)}
             </p>
           </div>
-        `).join('')
+        `,
+            )
+            .join("");
 
-        resultElement.innerHTML = html
-      } catch (error) {
-        resultElement.innerHTML = `
+          resultElement.innerHTML = html;
+        } catch (error) {
+          resultElement.innerHTML = `
           <p style="color:#dc2626;">
             เกิดข้อผิดพลาดในการเชื่อมต่อ: ${escapeHtml(error.message)}
           </p>
-        `
-      } finally {
-        button.disabled = false
-        button.style.opacity = '1'
-        button.style.cursor = 'pointer'
+        `;
+        } finally {
+          button.disabled = false;
+          button.style.opacity = "1";
+          button.style.cursor = "pointer";
+        }
       }
-    }
-  </script>
-</body>
+    </script>
+  </body>
 </html>

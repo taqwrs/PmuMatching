@@ -12,67 +12,45 @@
 
   <label>เลือกวิธีใส่ข้อมูลกรอบโจทย์</label><br>
   <div style="margin:10px 0; display:flex; gap:10px;">
-    <button
-      onclick="setMode('text')"
-      id="btn-text"
-      style="padding:8px 16px; background:#0284c7; color:white; border:none; border-radius:6px; cursor:pointer;"
-    >
+    <button onclick="setMode('text')" id="btn-text"
+      style="padding:8px 16px; background:#0284c7; color:white; border:none; border-radius:6px; cursor:pointer;">
       วางข้อความ
     </button>
-
-    <button
-      onclick="setMode('file')"
-      id="btn-file"
-      style="padding:8px 16px; background:#e2e8f0; color:black; border:none; border-radius:6px; cursor:pointer;"
-    >
+    <button onclick="setMode('file')" id="btn-file"
+      style="padding:8px 16px; background:#e2e8f0; color:black; border:none; border-radius:6px; cursor:pointer;">
       แนบไฟล์ TXT
     </button>
   </div>
 
   <div id="mode-text">
-    <textarea
-      id="content"
+    <textarea id="content"
       style="width:500px; height:180px; padding:8px;"
-      placeholder="คัดลอกเนื้อหากรอบโจทย์มาวางที่นี่..."
-    ></textarea>
+      placeholder="คัดลอกเนื้อหากรอบโจทย์มาวางที่นี่..."></textarea>
   </div>
 
   <div id="mode-file" style="display:none;">
-    <div
-      id="dropzone"
-      style="width:500px; border:2px dashed #cbd5e1; padding:30px; text-align:center; border-radius:8px; cursor:pointer; background:#f8fafc;"
-    >
+    <div id="dropzone"
+      style="width:500px; border:2px dashed #cbd5e1; padding:30px; text-align:center; border-radius:8px; cursor:pointer; background:#f8fafc;">
       คลิกเพื่อเลือกไฟล์ หรือลากไฟล์มาวางที่นี่<br>
       <small style="color:#64748b;">รองรับไฟล์ TXT ขนาดไม่เกิน 5 MB</small>
     </div>
-
-    <input
-      type="file"
-      id="fileInput"
-      accept=".txt,text/plain"
-      style="display:none;"
-    >
-
+    <input type="file" id="fileInput" accept=".txt,text/plain" style="display:none;">
     <p id="filename" style="color:#0284c7; margin-top:8px;"></p>
   </div>
 
   <br>
-
-  <button
-    onclick="extract()"
-    style="padding:10px 24px; background:#0284c7; color:white; border:none; border-radius:6px; cursor:pointer; margin-top:10px;"
-  >
+  <button id="submitBtn" onclick="extract()"
+    style="padding:10px 24px; background:#0284c7; color:white; border:none; border-radius:6px; cursor:pointer; margin-top:10px;">
     สกัดข้อมูล
   </button>
 
-  <pre
-    id="result"
-    style="margin-top:20px; background:#f5f5f5; padding:15px; border-radius:8px; white-space:pre-wrap;"
-  ></pre>
+  <pre id="result"
+    style="margin-top:20px; background:#f5f5f5; padding:15px; border-radius:8px; white-space:pre-wrap;"></pre>
 
   <script>
     let fileBase64 = ''
     let fileType = ''
+    let fileReady = false  // แก้จุดที่ 2: flag รู้ว่า FileReader เสร็จหรือยัง
 
     const MAX_FILE_SIZE = 5 * 1024 * 1024
 
@@ -84,75 +62,69 @@
 
       document.getElementById('btn-text').style.background = isTextMode ? '#0284c7' : '#e2e8f0'
       document.getElementById('btn-text').style.color = isTextMode ? 'white' : 'black'
-
       document.getElementById('btn-file').style.background = isTextMode ? '#e2e8f0' : '#0284c7'
       document.getElementById('btn-file').style.color = isTextMode ? 'black' : 'white'
+
+      // แก้จุดที่ 3: ล้างค่าไฟล์เมื่อ switch mode
+      if (isTextMode) {
+        fileBase64 = ''
+        fileType = ''
+        fileReady = false
+        document.getElementById('filename').textContent = ''
+        document.getElementById('fileInput').value = ''
+      }
     }
 
     document.getElementById('dropzone').addEventListener('click', () => {
       document.getElementById('fileInput').click()
     })
 
-    document.getElementById('dropzone').addEventListener('dragover', (event) => {
-      event.preventDefault()
-      event.currentTarget.style.borderColor = '#0284c7'
-      event.currentTarget.style.background = '#f0f9ff'
+    document.getElementById('dropzone').addEventListener('dragover', (e) => {
+      e.preventDefault()
+      e.currentTarget.style.borderColor = '#0284c7'
+      e.currentTarget.style.background = '#f0f9ff'
     })
 
-    document.getElementById('dropzone').addEventListener('dragleave', (event) => {
-      event.currentTarget.style.borderColor = '#cbd5e1'
-      event.currentTarget.style.background = '#f8fafc'
+    document.getElementById('dropzone').addEventListener('dragleave', (e) => {
+      e.currentTarget.style.borderColor = '#cbd5e1'
+      e.currentTarget.style.background = '#f8fafc'
     })
 
-    document.getElementById('dropzone').addEventListener('drop', (event) => {
-      event.preventDefault()
-      event.currentTarget.style.borderColor = '#cbd5e1'
-      event.currentTarget.style.background = '#f8fafc'
-
-      const file = event.dataTransfer.files[0]
-
-      if (file) {
-        readFile(file)
-      }
+    document.getElementById('dropzone').addEventListener('drop', (e) => {
+      e.preventDefault()
+      e.currentTarget.style.borderColor = '#cbd5e1'
+      e.currentTarget.style.background = '#f8fafc'
+      const file = e.dataTransfer.files[0]
+      if (file) readFile(file)
     })
 
-    document.getElementById('fileInput').addEventListener('change', (event) => {
-      const file = event.target.files[0]
-
-      if (file) {
-        readFile(file)
-      }
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      const file = e.target.files[0]
+      if (file) readFile(file)
     })
 
     function readFile(file) {
-      const isTextFile =
-        file.type === 'text/plain' ||
-        file.name.toLowerCase().endsWith('.txt')
+      const isTextFile = file.type === 'text/plain' || file.name.toLowerCase().endsWith('.txt')
+      if (!isTextFile) { alert('ขณะนี้รองรับเฉพาะไฟล์ TXT เท่านั้น'); return }
+      if (file.size > MAX_FILE_SIZE) { alert('ไฟล์มีขนาดใหญ่เกิน 5 MB'); return }
 
-      if (!isTextFile) {
-        alert('ขณะนี้รองรับเฉพาะไฟล์ TXT เท่านั้น')
-        return
-      }
-
-      if (file.size > MAX_FILE_SIZE) {
-        alert('ไฟล์มีขนาดใหญ่เกิน 5 MB')
-        return
-      }
-
-      document.getElementById('filename').textContent = `ไฟล์: ${file.name}`
-
-      fileType = 'text/plain'
+      document.getElementById('filename').textContent = `กำลังอ่านไฟล์: ${file.name}`
       fileBase64 = ''
+      fileType = 'text/plain'
+      fileReady = false  // รีเซ็ต flag ก่อนอ่านใหม่
 
       const reader = new FileReader()
 
-      reader.onload = (event) => {
-        fileBase64 = event.target.result.split(',')[1]
+      reader.onload = (e) => {
+        fileBase64 = e.target.result.split(',')[1]
+        fileReady = true  // อ่านเสร็จแล้ว
+        document.getElementById('filename').textContent = `ไฟล์: ${file.name}`
       }
 
       reader.onerror = () => {
         fileBase64 = ''
         fileType = ''
+        fileReady = false
         document.getElementById('filename').textContent = ''
         alert('ไม่สามารถอ่านไฟล์ได้')
       }
@@ -164,10 +136,16 @@
       const url = document.getElementById('url').value.trim()
       const content = document.getElementById('content').value.trim()
       const isFileMode = document.getElementById('mode-file').style.display !== 'none'
-      const resultElement = document.getElementById('result')
+      const resultEl = document.getElementById('result')
+      const btn = document.getElementById('submitBtn')
+
+      // แก้จุดที่ 2: เช็คว่า FileReader เสร็จหรือยัง
+      if (isFileMode && !fileReady && !url) {
+        alert('กรุณารอให้ไฟล์โหลดเสร็จก่อน')
+        return
+      }
 
       const body = { url }
-
       if (isFileMode && fileBase64) {
         body.fileBase64 = fileBase64
         body.fileType = fileType || 'text/plain'
@@ -180,30 +158,36 @@
         return
       }
 
-      resultElement.textContent = 'กำลังวิเคราะห์...'
+      // แก้จุดที่ 1: disable ปุ่มระหว่างรอ
+      btn.disabled = true
+      btn.textContent = 'กำลังวิเคราะห์...'
+      btn.style.background = '#94a3b8'
+      resultEl.textContent = 'กำลังวิเคราะห์...'
 
       try {
         const response = await fetch('/api/funding/extract', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body)
         })
 
         const data = await response.json()
 
         if (!response.ok || !data.success) {
-          resultElement.textContent = `เกิดข้อผิดพลาด: ${data.error || 'ไม่สามารถสกัดข้อมูลได้'}`
+          resultEl.textContent = `เกิดข้อผิดพลาด: ${data.error || 'ไม่สามารถสกัดข้อมูลได้'}`
           return
         }
 
-        resultElement.textContent = JSON.stringify(data, null, 2)
+        resultEl.textContent = JSON.stringify(data, null, 2)
       } catch (error) {
-        resultElement.textContent = `เกิดข้อผิดพลาดในการเชื่อมต่อ: ${error.message}`
+        resultEl.textContent = `เกิดข้อผิดพลาดในการเชื่อมต่อ: ${error.message}`
+      } finally {
+        // คืนสถานะปุ่มทุกกรณี
+        btn.disabled = false
+        btn.textContent = 'สกัดข้อมูล'
+        btn.style.background = '#0284c7'
       }
     }
   </script>
 </body>
 </html>
-
