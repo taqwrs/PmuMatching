@@ -8,22 +8,17 @@ export async function POST(request) {
     const { url, name } = await request.json()
 
     if (!url) {
-      return Response.json({ success: false, error: 'กรุณาใส่ URL' })
+      return Response.json({ success: false, error: 'no url' })
     }
 
-    // ดึง HTML จาก URL รองรับภาษาไทย
     const fetchRes = await fetch(url)
     const buffer = await fetchRes.arrayBuffer()
-    const decoder = new TextDecoder('tis-620')
-    let html = decoder.decode(buffer)
 
-    // ถ้าถอดรหัสแล้วยังเป็น ?? ลองใช้ utf-8 แทน
-    if (html.includes('???') || html.includes('þÿ')) {
-      const decoder2 = new TextDecoder('utf-8')
-      html = decoder2.decode(buffer)
+    let html = new TextDecoder('tis-620').decode(buffer)
+    if (!html.includes('\u0e01')) {
+      html = new TextDecoder('utf-8').decode(buffer)
     }
 
-    // ตัด HTML tag ออกให้เหลือแต่ text
     const plainText = html
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
@@ -32,32 +27,25 @@ export async function POST(request) {
       .trim()
       .slice(0, 8000)
 
-    // ส่งให้ Gemini สกัดข้อมูล
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
     const prompt = `
-จากข้อความด้านล่างนี้เป็นข้อมูลแหล่งทุนวิจัย
-สกัดข้อมูลออกมาเป็น JSON โดยมีฟิลด์ดังนี้
+Extract research funding information from the text below.
+Reply ONLY with a JSON object with these fields:
+- name: funding source name (in Thai if available)
+- requirements: scope and eligibility requirements (summarized in Thai)
+- deadline: application deadline in YYYY-MM-DD format, or null if not found
+- status: "open", "closed", or "upcoming"
 
-- name: ชื่อแหล่งทุนหรือโครงการ
-- requirements: กรอบโจทย์และคุณสมบัติผู้สมัคร สรุปให้กระชับ
-- deadline: วันปิดรับสมัคร รูปแบบ YYYY-MM-DD ถ้าไม่มีให้ใส่ null
-- status: "open" ถ้ายังเปิดรับ "closed" ถ้าปิดแล้ว "upcoming" ถ้ายังไม่เปิด
-
-ตอบเป็น JSON เท่านั้น ไม่ต้องมีข้อความอื่น
-
-ข้อความ:
+Text:
 ${plainText}
 `
 
     const result = await model.generateContent(prompt)
     const text = result.response.text()
-
-    // แปลง JSON
     const clean = text.replace(/```json|```/g, '').trim()
     const extracted = JSON.parse(clean)
 
-    // บันทึกลง Supabase
     const { data, error } = await supabase
       .from('funding_sources')
       .insert({
