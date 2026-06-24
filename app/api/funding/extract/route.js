@@ -11,13 +11,31 @@ export async function POST(request) {
       return Response.json({ success: false, error: 'no url' })
     }
 
-    const fetchRes = await fetch(url)
-    const buffer = await fetchRes.arrayBuffer()
+    const encodedUrl = encodeURI(url)
+    console.log('Fetching:', encodedUrl)
 
-    let html = new TextDecoder('tis-620').decode(buffer)
-    if (!html.includes('\u0e01')) {
+    const fetchRes = await fetch(encodedUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }
+    })
+
+    console.log('Status:', fetchRes.status)
+    console.log('Content-Type:', fetchRes.headers.get('content-type'))
+
+    const buffer = await fetchRes.arrayBuffer()
+    console.log('Buffer size:', buffer.byteLength)
+
+    const contentType = fetchRes.headers.get('content-type') || ''
+    let html = ''
+
+    if (contentType.includes('utf-8') || contentType.includes('UTF-8')) {
       html = new TextDecoder('utf-8').decode(buffer)
+    } else {
+      html = new TextDecoder('tis-620').decode(buffer)
     }
+
+    console.log('HTML preview:', html.slice(0, 200))
 
     const plainText = html
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
@@ -27,13 +45,15 @@ export async function POST(request) {
       .trim()
       .slice(0, 8000)
 
+    console.log('Text preview:', plainText.slice(0, 200))
+
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
     const prompt = `
 Extract research funding information from the text below.
 Reply ONLY with a JSON object with these fields:
-- name: funding source name (in Thai if available)
-- requirements: scope and eligibility requirements (summarized in Thai)
+- name: funding source name
+- requirements: scope and eligibility requirements
 - deadline: application deadline in YYYY-MM-DD format, or null if not found
 - status: "open", "closed", or "upcoming"
 
@@ -65,6 +85,8 @@ ${plainText}
     return Response.json({ success: true, data })
 
   } catch (err) {
+    console.error('ERROR:', err.message)
+    console.error('STACK:', err.stack)
     return Response.json({ success: false, error: err.message })
   }
 }
