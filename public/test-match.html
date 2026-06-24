@@ -217,9 +217,10 @@
         resultEl.innerHTML = data.results.map((r, i) => `
           <div style="border:1px solid #e2e8f0; border-radius:8px; padding:16px; margin-bottom:12px;">
             <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:8px;">
-              <div>
+                <div>
                 <div style="color:#64748b; font-size:0.85rem; margin-bottom:4px;">อันดับ ${i + 1}</div>
                 <b style="font-size:1.1rem;">${escapeHtml(r.funding_name)}</b>
+                ${r.url ? `<div style="margin-top:6px;"><a href="${escapeHtml(r.url)}" target="_blank" rel="noopener noreferrer" style="color:#0ea5e9; text-decoration:none;">ดูรายละเอียด</a></div>` : ''}
               </div>
               <div style="text-align:center; min-width:85px;">
                 <div style="font-size:2rem; font-weight:bold; color:${getScoreColor(Math.round(Number(r.score)))};">

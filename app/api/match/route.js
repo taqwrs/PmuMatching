@@ -33,7 +33,7 @@ export async function POST(request) {
 
     const { data: fundings, error: fundingError } = await supabase
       .from('funding_sources')
-      .select('id, name, requirements, deadline, status')
+      .select('id, name, requirements, deadline, status, url')
       .eq('status', 'open')
 
     if (fundingError) {
@@ -135,6 +135,7 @@ reason_mismatch เขียน 1-2 ประโยค
         return {
           funding_id: f.id,
           funding_name: f.name,
+          url: f.url || null,
           score: normalizeScore(ai?.score),
           reason_match: cleanText(ai?.reason_match, 2000) || 'AI ไม่สามารถสรุปความเหมาะสมได้',
           reason_mismatch: cleanText(ai?.reason_mismatch, 1500) || 'ควรตรวจสอบกรอบโจทย์เพิ่มเติม'
