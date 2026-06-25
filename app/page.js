@@ -302,7 +302,7 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 px-4 py-8 text-slate-800 antialiased">
+    <main className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-50 px-4 py-8 text-slate-800 antialiased">
       <div className="mx-auto w-full max-w-6xl">
         {/* Header */}
         <div className="mb-8 flex items-start justify-between">
@@ -431,7 +431,7 @@ export default function Home() {
                 value={proposalText}
                 onChange={(event) => setProposalText(event.target.value)}
                 placeholder="วาง Abstract หรือบทคัดย่อโครงการที่นี่..."
-                className="mt-4 min-h-[200px] w-full rounded-lg border border-slate-200 bg-slate-50/50 p-4 text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100"
+                className="mt-4 min-h-50 w-full rounded-lg border border-slate-200 bg-slate-50/50 p-4 text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100"
               />
             ) : (
               <div className="mt-4 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/30 p-8 transition hover:border-indigo-300">
@@ -679,7 +679,7 @@ export default function Home() {
                 value={fundingText}
                 onChange={(event) => setFundingText(event.target.value)}
                 placeholder="วางประกาศหรือกรอบโจทย์แหล่งทุนที่นี่..."
-                className="mt-4 min-h-[200px] w-full rounded-lg border border-slate-200 bg-slate-50/50 p-4 text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100"
+                className="mt-4 min-h-50 w-full rounded-lg border border-slate-200 bg-slate-50/50 p-4 text-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100"
               />
             ) : (
               <div className="mt-4 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/30 p-8 transition hover:border-indigo-300">
@@ -760,7 +760,7 @@ export default function Home() {
 
                 <div className="mt-4 grid gap-3 border-t border-slate-100 pt-4 text-sm">
                   <div className="flex items-start gap-2">
-                    <span className="font-medium text-slate-600 min-w-[80px]">
+                    <span className="font-medium text-slate-600 min-w-20">
                       สถานะ:
                     </span>
                     <span className="text-slate-800">
@@ -769,7 +769,7 @@ export default function Home() {
                   </div>
 
                   <div className="flex items-start gap-2">
-                    <span className="flex items-center gap-1 font-medium text-slate-600 min-w-[80px]">
+                    <span className="flex items-center gap-1 font-medium text-slate-600 min-w-20">
                       <Icons.Calendar />
                       วันปิดรับ:
                     </span>
@@ -779,7 +779,7 @@ export default function Home() {
                   </div>
 
                   <div className="flex items-start gap-2">
-                    <span className="font-medium text-slate-600 min-w-[80px]">
+                    <span className="font-medium text-slate-600 min-w-20">
                       กรอบโจทย์:
                     </span>
                     <span className="text-slate-800 leading-relaxed">
