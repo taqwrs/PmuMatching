@@ -65,7 +65,7 @@ export async function POST(request) {
 
     // แก้จุดที่ 1: เพิ่ม Groq timeout
     const groqPromise = groq.chat.completions.create({
-      model: "openai/gpt-oss-120b",
+      model: "llama-3.3-70b-versatile",
       temperature: 0.2,
       max_completion_tokens: 2500,
       response_format: { type: "json_object" },
