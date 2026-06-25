@@ -34,7 +34,7 @@ export async function POST(request) {
     const { data: fundings, error: fundingError } = await supabase
       .from('funding_sources')
       .select('id, name, requirements, deadline, status, url')
-      .eq('status', 'open')
+      // .eq('status', 'open')
 
     if (fundingError) {
       return Response.json({ success: false, error: fundingError.message }, { status: 500 })
