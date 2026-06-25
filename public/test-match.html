@@ -4,49 +4,95 @@
   <h3>ทดสอบ AI Matching</h3>
 
   <label>ชื่อโครงการ (ไม่บังคับ)</label><br>
-  <input id="title" style="width:100%; padding:8px; margin-bottom:12px;"
-    placeholder="เช่น โครงการพัฒนา AI เพื่อการเกษตร"><br>
+
+  <input
+    id="title"
+    style="width:100%; padding:8px; margin-bottom:12px;"
+    placeholder="เช่น โครงการพัฒนา AI เพื่อการเกษตร"
+  ><br>
 
   <label>เลือกวิธีใส่ข้อมูล Abstract</label><br>
+
   <div style="margin:10px 0; display:flex; gap:10px;">
-    <button onclick="setMode('text')" id="btn-text"
-      style="padding:8px 16px; background:#0284c7; color:white; border:none; border-radius:6px; cursor:pointer;">
+    <button
+      type="button"
+      onclick="setMode('text')"
+      id="btn-text"
+      style="padding:8px 16px; background:#0284c7; color:white; border:none; border-radius:6px; cursor:pointer;"
+    >
       วางข้อความ
     </button>
-    <button onclick="setMode('file')" id="btn-file"
-      style="padding:8px 16px; background:#e2e8f0; color:black; border:none; border-radius:6px; cursor:pointer;">
+
+    <button
+      type="button"
+      onclick="setMode('file')"
+      id="btn-file"
+      style="padding:8px 16px; background:#e2e8f0; color:black; border:none; border-radius:6px; cursor:pointer;"
+    >
       แนบไฟล์ PDF
     </button>
   </div>
 
   <div id="mode-text">
-    <textarea id="abstract" style="width:100%; height:200px; padding:8px; margin-bottom:12px;"
-      placeholder="วาง abstract หรือบทคัดย่อโครงการที่นี่..."></textarea>
+    <textarea
+      id="abstract"
+      style="width:100%; height:200px; padding:8px; margin-bottom:12px;"
+      placeholder="วาง abstract หรือบทคัดย่อโครงการที่นี่..."
+    ></textarea>
   </div>
 
   <div id="mode-file" style="display:none;">
-    <div id="dropzone"
-      style="width:100%; border:2px dashed #cbd5e1; padding:30px; text-align:center; border-radius:8px; cursor:pointer; background:#f8fafc;">
+    <div
+      id="dropzone"
+      style="width:100%; border:2px dashed #cbd5e1; padding:30px; text-align:center; border-radius:8px; cursor:pointer; background:#f8fafc;"
+    >
       คลิกเพื่อเลือกไฟล์ PDF หรือลากมาวางที่นี่<br>
-      <small style="color:#64748b;">รองรับ PDF ที่ copy text ได้ ขนาดไม่เกิน 10 MB</small>
+
+      <small style="color:#64748b;">
+        รองรับ PDF ที่เลือกและคัดลอกข้อความได้ ขนาดไม่เกิน 10 MB
+      </small>
     </div>
-    <input type="file" id="fileInput" accept=".pdf,application/pdf" style="display:none;">
+
+    <input
+      type="file"
+      id="fileInput"
+      accept=".pdf,application/pdf"
+      style="display:none;"
+    >
+
     <div style="display:flex; align-items:center; gap:10px; margin-top:8px; flex-wrap:wrap;">
       <p id="filename" style="color:#0284c7; margin:0;"></p>
-      <button id="resetFileBtn" type="button" onclick="resetFileUpload()" style="display:none; padding:6px 12px; background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer;">
+
+      <button
+        id="resetFileBtn"
+        type="button"
+        onclick="resetFileUpload()"
+        style="display:none; padding:6px 12px; background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer;"
+      >
         ล้างไฟล์
       </button>
     </div>
+
     <div id="extracted-preview" style="display:none; margin-top:10px;">
-      <label style="font-size:0.85rem; color:#64748b;">ข้อความที่ถอดได้จาก PDF (ตัวอย่างบางส่วน)</label>
-      <pre id="preview-text"
-        style="background:#f1f5f9; padding:10px; border-radius:6px; font-size:0.8rem; white-space:pre-wrap; max-height:120px; overflow:auto;"></pre>
+      <label style="font-size:0.85rem; color:#64748b;">
+        ข้อความที่ถอดได้จาก PDF (ตัวอย่าง)
+      </label>
+
+      <pre
+        id="preview-text"
+        style="background:#f1f5f9; padding:10px; border-radius:6px; font-size:0.8rem; white-space:pre-wrap; max-height:120px; overflow:auto;"
+      ></pre>
     </div>
   </div>
 
   <br>
-  <button id="matchButton" onclick="match()"
-    style="padding:10px 24px; background:#0284c7; color:white; border:none; border-radius:6px; cursor:pointer; margin-top:10px;">
+
+  <button
+    id="matchButton"
+    type="button"
+    onclick="match()"
+    style="padding:10px 24px; background:#0284c7; color:white; border:none; border-radius:6px; cursor:pointer; margin-top:10px;"
+  >
     วิเคราะห์ความเหมาะสม
   </button>
 
@@ -54,13 +100,18 @@
 
   <script>
     const MAX_ABSTRACT_CHARS = 12000
+    const MAX_PDF_BYTES = 10 * 1024 * 1024
+
     let pdfText = ''
     let fileReady = false
 
     function escapeHtml(value) {
       return String(value || '')
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;').replace(/'/g, '&#039;')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
     }
 
     function getScoreColor(score) {
@@ -71,12 +122,25 @@
 
     function setMode(mode) {
       const isText = mode === 'text'
-      document.getElementById('mode-text').style.display = isText ? 'block' : 'none'
-      document.getElementById('mode-file').style.display = isText ? 'none' : 'block'
-      document.getElementById('btn-text').style.background = isText ? '#0284c7' : '#e2e8f0'
-      document.getElementById('btn-text').style.color = isText ? 'white' : 'black'
-      document.getElementById('btn-file').style.background = isText ? '#e2e8f0' : '#0284c7'
-      document.getElementById('btn-file').style.color = isText ? 'black' : 'white'
+
+      document.getElementById('mode-text').style.display =
+        isText ? 'block' : 'none'
+
+      document.getElementById('mode-file').style.display =
+        isText ? 'none' : 'block'
+
+      document.getElementById('btn-text').style.background =
+        isText ? '#0284c7' : '#e2e8f0'
+
+      document.getElementById('btn-text').style.color =
+        isText ? 'white' : 'black'
+
+      document.getElementById('btn-file').style.background =
+        isText ? '#e2e8f0' : '#0284c7'
+
+      document.getElementById('btn-file').style.color =
+        isText ? 'black' : 'white'
+
       if (isText) {
         resetFileUpload()
       }
@@ -85,6 +149,7 @@
     function resetFileUpload() {
       pdfText = ''
       fileReady = false
+
       document.getElementById('fileInput').value = ''
       document.getElementById('filename').textContent = ''
       document.getElementById('preview-text').textContent = ''
@@ -95,152 +160,240 @@
     document.getElementById('dropzone').addEventListener('click', () => {
       document.getElementById('fileInput').click()
     })
-    document.getElementById('dropzone').addEventListener('dragover', (e) => {
-      e.preventDefault()
-      e.currentTarget.style.borderColor = '#0284c7'
-      e.currentTarget.style.background = '#f0f9ff'
+
+    document.getElementById('dropzone').addEventListener('dragover', (event) => {
+      event.preventDefault()
+      event.currentTarget.style.borderColor = '#0284c7'
+      event.currentTarget.style.background = '#f0f9ff'
     })
-    document.getElementById('dropzone').addEventListener('dragleave', (e) => {
-      e.currentTarget.style.borderColor = '#cbd5e1'
-      e.currentTarget.style.background = '#f8fafc'
+
+    document.getElementById('dropzone').addEventListener('dragleave', (event) => {
+      event.currentTarget.style.borderColor = '#cbd5e1'
+      event.currentTarget.style.background = '#f8fafc'
     })
-    document.getElementById('dropzone').addEventListener('drop', (e) => {
-      e.preventDefault()
-      e.currentTarget.style.borderColor = '#cbd5e1'
-      e.currentTarget.style.background = '#f8fafc'
-      const file = e.dataTransfer.files[0]
-      if (file) readFile(file)
+
+    document.getElementById('dropzone').addEventListener('drop', (event) => {
+      event.preventDefault()
+
+      event.currentTarget.style.borderColor = '#cbd5e1'
+      event.currentTarget.style.background = '#f8fafc'
+
+      const file = event.dataTransfer.files[0]
+
+      if (file) {
+        readFile(file)
+      }
     })
-    document.getElementById('fileInput').addEventListener('change', (e) => {
-      const file = e.target.files[0]
-      if (file) readFile(file)
+
+    document.getElementById('fileInput').addEventListener('change', (event) => {
+      const file = event.target.files[0]
+
+      if (file) {
+        readFile(file)
+      }
     })
 
     async function readFile(file) {
       resetFileUpload()
 
-      if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      const isPdfByType = file.type === 'application/pdf'
+      const isPdfByName = file.name.toLowerCase().endsWith('.pdf')
+
+      if (!isPdfByType && !isPdfByName) {
         alert('รองรับเฉพาะไฟล์ PDF')
         return
       }
-      if (file.size > 10 * 1024 * 1024) {
+
+      if (file.size > MAX_PDF_BYTES) {
         alert('ไฟล์มีขนาดใหญ่เกิน 10 MB')
         return
       }
 
-      document.getElementById('filename').textContent = `กำลังอ่าน: ${file.name}`
+      const filenameEl = document.getElementById('filename')
+
+      filenameEl.textContent = `กำลังอ่านข้อความจาก: ${file.name}`
       document.getElementById('resetFileBtn').style.display = 'inline-block'
-      document.getElementById('extracted-preview').style.display = 'none'
-      pdfText = ''
-      fileReady = false
 
-      const reader = new FileReader()
-      reader.onload = async (e) => {
-        try {
-          const base64 = e.target.result.split(',')[1]
-          const res = await fetch('/api/proposals/upload', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fileBase64: base64, fileType: 'application/pdf' })
-          })
-          const data = await res.json()
+      try {
+        const formData = new FormData()
 
-          if (!data.success) {
-            resetFileUpload()
-            alert(data.error || 'ไม่สามารถอ่าน PDF ได้')
-            return
-          }
+        formData.append('file', file, file.name)
 
-          pdfText = data.text
-          fileReady = true
-          document.getElementById('filename').textContent = `ไฟล์: ${file.name} (${pdfText.length.toLocaleString()} ตัวอักษร)`
-          document.getElementById('preview-text').textContent = pdfText.slice(0, 300) + '...'
-          document.getElementById('extracted-preview').style.display = 'block'
+        const response = await fetch('/api/proposals/upload', {
+          method: 'POST',
+          body: formData
+        })
 
-        } catch (err) {
+        const data = await response.json()
+
+        if (!response.ok || !data.success) {
           resetFileUpload()
-          alert('เกิดข้อผิดพลาดในการอ่าน PDF: ' + err.message)
+          alert(data.error || 'ไม่สามารถอ่าน PDF ได้')
+          return
         }
+
+        pdfText = data.text
+        fileReady = true
+
+        filenameEl.textContent =
+          `ไฟล์: ${file.name} — ${data.totalPages || 0} หน้า — ${pdfText.length.toLocaleString()} ตัวอักษร`
+
+        document.getElementById('preview-text').textContent =
+          pdfText.length > 500
+            ? `${pdfText.slice(0, 500)}...`
+            : pdfText
+
+        document.getElementById('extracted-preview').style.display = 'block'
+      } catch (err) {
+        resetFileUpload()
+        alert(`เกิดข้อผิดพลาดในการอ่าน PDF: ${err.message}`)
       }
-      reader.onerror = () => alert('ไม่สามารถอ่านไฟล์ได้')
-      reader.readAsDataURL(file)
     }
 
     async function match() {
-      const isFileMode = document.getElementById('mode-file').style.display !== 'none'
-      const proposalTitle = document.getElementById('title').value.trim()
+      const isFileMode =
+        document.getElementById('mode-file').style.display !== 'none'
+
+      const proposalTitle =
+        document.getElementById('title').value.trim()
+
       const resultEl = document.getElementById('result')
-      const btn = document.getElementById('matchButton')
+      const button = document.getElementById('matchButton')
 
       let abstract = ''
 
       if (isFileMode) {
         if (!fileReady || !pdfText) {
-          alert('กรุณาแนบไฟล์ PDF และรอให้อ่านเสร็จก่อน')
+          alert('กรุณาแนบไฟล์ PDF และรอให้ระบบอ่านข้อความเสร็จก่อน')
           return
         }
+
         abstract = pdfText
       } else {
         abstract = document.getElementById('abstract').value.trim()
+
         if (!abstract) {
-          alert('กรุณาใส่ abstract ก่อนครับ')
+          alert('กรุณาใส่ abstract ก่อน')
           return
         }
+
         if (abstract.length > MAX_ABSTRACT_CHARS) {
-          if (!window.confirm(`abstract ยาวเกิน ${MAX_ABSTRACT_CHARS.toLocaleString()} ตัวอักษร ระบบจะตัดข้อความส่วนเกินออก\n\nดำเนินการต่อไหม?`)) return
+          const confirmed = window.confirm(
+            `Abstract ยาวเกิน ${MAX_ABSTRACT_CHARS.toLocaleString()} ตัวอักษร ระบบจะตัดข้อความส่วนเกินออก\n\nดำเนินการต่อหรือไม่?`
+          )
+
+          if (!confirmed) return
+
+          abstract = abstract.slice(0, MAX_ABSTRACT_CHARS)
         }
       }
 
-      btn.disabled = true
-      btn.style.opacity = '0.7'
-      btn.style.cursor = 'not-allowed'
+      button.disabled = true
+      button.style.opacity = '0.7'
+      button.style.cursor = 'not-allowed'
+
       resultEl.innerHTML = '<p>กำลังวิเคราะห์...</p>'
 
       try {
-        const res = await fetch('/api/match', {
+        const response = await fetch('/api/match', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ abstract, proposalTitle })
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            abstract,
+            proposalTitle
+          })
         })
-        const data = await res.json()
 
-        if (!res.ok || !data.success) {
-          resultEl.innerHTML = `<p style="color:#dc2626;">${escapeHtml(data.error || 'ไม่สามารถวิเคราะห์ได้')}</p>`
+        const data = await response.json()
+
+        if (!response.ok || !data.success) {
+          resultEl.innerHTML = `
+            <p style="color:#dc2626;">
+              ${escapeHtml(data.error || 'ไม่สามารถวิเคราะห์ได้')}
+            </p>
+          `
           return
         }
 
         if (!Array.isArray(data.results) || data.results.length === 0) {
-          resultEl.innerHTML = `<p style="color:#d97706;">ไม่พบผลการจับคู่แหล่งทุน</p>`
+          resultEl.innerHTML = `
+            <p style="color:#d97706;">
+              ไม่พบผลการจับคู่แหล่งทุน
+            </p>
+          `
           return
         }
 
-        resultEl.innerHTML = data.results.map((r, i) => `
-          <div style="border:1px solid #e2e8f0; border-radius:8px; padding:16px; margin-bottom:12px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:8px;">
-                <div>
-                <div style="color:#64748b; font-size:0.85rem; margin-bottom:4px;">อันดับ ${i + 1}</div>
-                <b style="font-size:1.1rem;">${escapeHtml(r.funding_name)}</b>
-                ${r.url ? `<div style="margin-top:6px;"><a href="${escapeHtml(r.url)}" target="_blank" rel="noopener noreferrer" style="color:#0ea5e9; text-decoration:none;">ดูรายละเอียด</a></div>` : ''}
-              </div>
-              <div style="text-align:center; min-width:85px;">
-                <div style="font-size:2rem; font-weight:bold; color:${getScoreColor(Math.round(Number(r.score)))};">
-                  ${Math.round(Number(r.score) || 0)}%
-                </div>
-                <div style="font-size:0.75rem; color:#64748b;">ความเหมาะสม</div>
-              </div>
-            </div>
-            <hr style="border:0; border-top:1px solid #f1f5f9; margin:10px 0;">
-            <p style="margin:8px 0; color:#166534;"><b>เหมาะสม:</b> ${escapeHtml(r.reason_match)}</p>
-            <p style="margin:8px 0 0; color:#b91c1c;"><b>ข้อจำกัด:</b> ${escapeHtml(r.reason_mismatch)}</p>
-          </div>
-        `).join('')
+        resultEl.innerHTML = data.results.map((result, index) => {
+          const score = Math.round(Number(result.score) || 0)
 
+          return `
+            <div style="border:1px solid #e2e8f0; border-radius:8px; padding:16px; margin-bottom:12px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:8px;">
+                <div>
+                  <div style="color:#64748b; font-size:0.85rem; margin-bottom:4px;">
+                    อันดับ ${index + 1}
+                  </div>
+
+                  <b style="font-size:1.1rem;">
+                    ${escapeHtml(result.funding_name)}
+                  </b>
+
+                  ${
+                    result.url
+                      ? `
+                        <div style="margin-top:6px;">
+                          <a
+                            href="${escapeHtml(result.url)}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style="color:#0ea5e9; text-decoration:none;"
+                          >
+                            ดูรายละเอียด
+                          </a>
+                        </div>
+                      `
+                      : ''
+                  }
+                </div>
+
+                <div style="text-align:center; min-width:85px;">
+                  <div style="font-size:2rem; font-weight:bold; color:${getScoreColor(score)};">
+                    ${score}%
+                  </div>
+
+                  <div style="font-size:0.75rem; color:#64748b;">
+                    ความเหมาะสม
+                  </div>
+                </div>
+              </div>
+
+              <hr style="border:0; border-top:1px solid #f1f5f9; margin:10px 0;">
+
+              <p style="margin:8px 0; color:#166534;">
+                <b>เหมาะสม:</b>
+                ${escapeHtml(result.reason_match)}
+              </p>
+
+              <p style="margin:8px 0 0; color:#b91c1c;">
+                <b>ข้อจำกัด:</b>
+                ${escapeHtml(result.reason_mismatch)}
+              </p>
+            </div>
+          `
+        }).join('')
       } catch (err) {
-        resultEl.innerHTML = `<p style="color:#dc2626;">เกิดข้อผิดพลาด: ${escapeHtml(err.message)}</p>`
+        resultEl.innerHTML = `
+          <p style="color:#dc2626;">
+            เกิดข้อผิดพลาด: ${escapeHtml(err.message)}
+          </p>
+        `
       } finally {
-        btn.disabled = false
-        btn.style.opacity = '1'
-        btn.style.cursor = 'pointer'
+        button.disabled = false
+        button.style.opacity = '1'
+        button.style.cursor = 'pointer'
       }
     }
   </script>

@@ -1,201 +1,283 @@
 <!DOCTYPE html>
 <html>
-<body style="font-family:sans-serif; padding:20px;">
+<body style="font-family:sans-serif; padding:20px; max-width:700px;">
   <h3>สกัดข้อมูลแหล่งทุน</h3>
 
-  <label>URL แหล่งทุน (ไม่บังคับ)</label><br>
+  <label>URL อ้างอิง (ไม่บังคับ)</label><br>
   <input
     id="url"
-    style="width:500px; padding:8px; margin-bottom:15px;"
-    placeholder="https://nriis.go.th/home/news/"
-  /><br>
+    style="width:100%; padding:8px; margin-bottom:15px; box-sizing:border-box;"
+    placeholder="https://example.org/funding-announcement"
+  ><br>
 
   <label>เลือกวิธีใส่ข้อมูลกรอบโจทย์</label><br>
+
   <div style="margin:10px 0; display:flex; gap:10px;">
-    <button onclick="setMode('text')" id="btn-text"
-      style="padding:8px 16px; background:#0284c7; color:white; border:none; border-radius:6px; cursor:pointer;">
+    <button
+      type="button"
+      onclick="setMode('text')"
+      id="btn-text"
+      style="padding:8px 16px; background:#0284c7; color:white; border:none; border-radius:6px; cursor:pointer;"
+    >
       วางข้อความ
     </button>
-    <button onclick="setMode('file')" id="btn-file"
-      style="padding:8px 16px; background:#e2e8f0; color:black; border:none; border-radius:6px; cursor:pointer;">
-      แนบไฟล์ TXT
+
+    <button
+      type="button"
+      onclick="setMode('file')"
+      id="btn-file"
+      style="padding:8px 16px; background:#e2e8f0; color:black; border:none; border-radius:6px; cursor:pointer;"
+    >
+      แนบไฟล์ PDF
     </button>
   </div>
 
   <div id="mode-text">
-    <textarea id="content"
-      style="width:500px; height:180px; padding:8px;"
-      placeholder="คัดลอกเนื้อหากรอบโจทย์มาวางที่นี่..."></textarea>
+    <textarea
+      id="content"
+      style="width:100%; height:180px; padding:8px; box-sizing:border-box;"
+      placeholder="คัดลอกเนื้อหากรอบโจทย์หรือประกาศแหล่งทุนมาวางที่นี่..."
+    ></textarea>
   </div>
 
   <div id="mode-file" style="display:none;">
-    <div id="dropzone"
-      style="width:500px; border:2px dashed #cbd5e1; padding:30px; text-align:center; border-radius:8px; cursor:pointer; background:#f8fafc;">
-      คลิกเพื่อเลือกไฟล์ หรือลากไฟล์มาวางที่นี่<br>
-      <small style="color:#64748b;">รองรับไฟล์ TXT ขนาดไม่เกิน 5 MB</small>
+    <div
+      id="dropzone"
+      style="width:100%; border:2px dashed #cbd5e1; padding:30px; box-sizing:border-box; text-align:center; border-radius:8px; cursor:pointer; background:#f8fafc;"
+    >
+      คลิกเพื่อเลือกไฟล์ PDF หรือลากไฟล์มาวางที่นี่<br>
+      <small style="color:#64748b;">
+        รองรับ PDF ที่เลือกและคัดลอกข้อความได้ ขนาดไม่เกิน 10 MB
+      </small>
     </div>
-    <input type="file" id="fileInput" accept=".txt,text/plain" style="display:none;">
+
+    <input
+      type="file"
+      id="fileInput"
+      accept=".pdf,application/pdf"
+      style="display:none;"
+    >
+
     <div style="display:flex; align-items:center; gap:10px; margin-top:8px; flex-wrap:wrap;">
       <p id="filename" style="color:#0284c7; margin:0;"></p>
-      <button id="resetFileBtn" type="button" onclick="resetFileUpload()" style="display:none; padding:6px 12px; background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer;">
+
+      <button
+        id="resetFileBtn"
+        type="button"
+        onclick="resetFileUpload()"
+        style="display:none; padding:6px 12px; background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer;"
+      >
         ล้างไฟล์
       </button>
     </div>
   </div>
 
   <br>
-  <button id="submitBtn" onclick="extract()"
-    style="padding:10px 24px; background:#0284c7; color:white; border:none; border-radius:6px; cursor:pointer; margin-top:10px;">
+
+  <button
+    id="submitBtn"
+    type="button"
+    onclick="extractFunding()"
+    style="padding:10px 24px; background:#0284c7; color:white; border:none; border-radius:6px; cursor:pointer; margin-top:10px;"
+  >
     สกัดข้อมูล
   </button>
 
-  <pre id="result"
-    style="margin-top:20px; background:#f5f5f5; padding:15px; border-radius:8px; white-space:pre-wrap;"></pre>
+  <pre
+    id="result"
+    style="margin-top:20px; background:#f5f5f5; padding:15px; border-radius:8px; white-space:pre-wrap;"
+  ></pre>
 
   <script>
-    let fileBase64 = ''
-    let fileType = ''
-    let fileReady = false  // แก้จุดที่ 2: flag รู้ว่า FileReader เสร็จหรือยัง
+    const MAX_PDF_BYTES = 10 * 1024 * 1024
+    const MAX_SOURCE_CHARS = 12000
 
-    const MAX_FILE_SIZE = 5 * 1024 * 1024
+    let selectedPdf = null
 
     function setMode(mode) {
       const isTextMode = mode === 'text'
 
-      document.getElementById('mode-text').style.display = isTextMode ? 'block' : 'none'
-      document.getElementById('mode-file').style.display = isTextMode ? 'none' : 'block'
+      document.getElementById('mode-text').style.display =
+        isTextMode ? 'block' : 'none'
 
-      document.getElementById('btn-text').style.background = isTextMode ? '#0284c7' : '#e2e8f0'
-      document.getElementById('btn-text').style.color = isTextMode ? 'white' : 'black'
-      document.getElementById('btn-file').style.background = isTextMode ? '#e2e8f0' : '#0284c7'
-      document.getElementById('btn-file').style.color = isTextMode ? 'black' : 'white'
+      document.getElementById('mode-file').style.display =
+        isTextMode ? 'none' : 'block'
 
-      // แก้จุดที่ 3: ล้างค่าไฟล์เมื่อ switch mode
+      document.getElementById('btn-text').style.background =
+        isTextMode ? '#0284c7' : '#e2e8f0'
+
+      document.getElementById('btn-text').style.color =
+        isTextMode ? 'white' : 'black'
+
+      document.getElementById('btn-file').style.background =
+        isTextMode ? '#e2e8f0' : '#0284c7'
+
+      document.getElementById('btn-file').style.color =
+        isTextMode ? 'black' : 'white'
+
       if (isTextMode) {
         resetFileUpload()
       }
     }
 
     function resetFileUpload() {
-      fileBase64 = ''
-      fileType = ''
-      fileReady = false
+      selectedPdf = null
+
       document.getElementById('fileInput').value = ''
       document.getElementById('filename').textContent = ''
       document.getElementById('resetFileBtn').style.display = 'none'
+    }
+
+    function setDropzoneNormalStyle(element) {
+      element.style.borderColor = '#cbd5e1'
+      element.style.background = '#f8fafc'
     }
 
     document.getElementById('dropzone').addEventListener('click', () => {
       document.getElementById('fileInput').click()
     })
 
-    document.getElementById('dropzone').addEventListener('dragover', (e) => {
-      e.preventDefault()
-      e.currentTarget.style.borderColor = '#0284c7'
-      e.currentTarget.style.background = '#f0f9ff'
+    document.getElementById('dropzone').addEventListener('dragover', (event) => {
+      event.preventDefault()
+      event.currentTarget.style.borderColor = '#0284c7'
+      event.currentTarget.style.background = '#f0f9ff'
     })
 
-    document.getElementById('dropzone').addEventListener('dragleave', (e) => {
-      e.currentTarget.style.borderColor = '#cbd5e1'
-      e.currentTarget.style.background = '#f8fafc'
+    document.getElementById('dropzone').addEventListener('dragleave', (event) => {
+      setDropzoneNormalStyle(event.currentTarget)
     })
 
-    document.getElementById('dropzone').addEventListener('drop', (e) => {
-      e.preventDefault()
-      e.currentTarget.style.borderColor = '#cbd5e1'
-      e.currentTarget.style.background = '#f8fafc'
-      const file = e.dataTransfer.files[0]
-      if (file) readFile(file)
+    document.getElementById('dropzone').addEventListener('drop', (event) => {
+      event.preventDefault()
+      setDropzoneNormalStyle(event.currentTarget)
+
+      const file = event.dataTransfer.files[0]
+
+      if (file) {
+        choosePdf(file)
+      }
     })
 
-    document.getElementById('fileInput').addEventListener('change', (e) => {
-      const file = e.target.files[0]
-      if (file) readFile(file)
+    document.getElementById('fileInput').addEventListener('change', (event) => {
+      const file = event.target.files[0]
+
+      if (file) {
+        choosePdf(file)
+      }
     })
 
-    function readFile(file) {
+    function choosePdf(file) {
       resetFileUpload()
 
-      const isTextFile = file.type === 'text/plain' || file.name.toLowerCase().endsWith('.txt')
-      if (!isTextFile) { alert('ขณะนี้รองรับเฉพาะไฟล์ TXT เท่านั้น'); return }
-      if (file.size > MAX_FILE_SIZE) { alert('ไฟล์มีขนาดใหญ่เกิน 5 MB'); return }
+      const isPdfByMimeType = file.type === 'application/pdf'
+      const isPdfByExtension = file.name.toLowerCase().endsWith('.pdf')
 
-      document.getElementById('filename').textContent = `กำลังอ่านไฟล์: ${file.name}`
-      document.getElementById('resetFileBtn').style.display = 'inline-block'
-      fileBase64 = ''
-      fileType = 'text/plain'
-      fileReady = false  // รีเซ็ต flag ก่อนอ่านใหม่
-
-      const reader = new FileReader()
-
-      reader.onload = (e) => {
-        fileBase64 = e.target.result.split(',')[1]
-        fileReady = true  // อ่านเสร็จแล้ว
-        document.getElementById('filename').textContent = `ไฟล์: ${file.name}`
+      if (!isPdfByMimeType && !isPdfByExtension) {
+        alert('รองรับเฉพาะไฟล์ PDF')
+        return
       }
 
-      reader.onerror = () => {
-        resetFileUpload()
+      if (!file.size) {
         alert('ไม่สามารถอ่านไฟล์ได้')
+        return
       }
 
-      reader.readAsDataURL(file)
+      if (file.size > MAX_PDF_BYTES) {
+        alert('ไฟล์มีขนาดใหญ่เกิน 10 MB')
+        return
+      }
+
+      selectedPdf = file
+
+      document.getElementById('filename').textContent =
+        `ไฟล์: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`
+
+      document.getElementById('resetFileBtn').style.display = 'inline-block'
     }
 
-    async function extract() {
+    async function getResponseJson(response) {
+      const raw = await response.text()
+
+      try {
+        return raw ? JSON.parse(raw) : {}
+      } catch {
+        return {
+          success: false,
+          error: 'เซิร์ฟเวอร์ตอบกลับไม่ใช่ JSON'
+        }
+      }
+    }
+
+    async function extractFunding() {
       const url = document.getElementById('url').value.trim()
-      const content = document.getElementById('content').value.trim()
-      const isFileMode = document.getElementById('mode-file').style.display !== 'none'
+      let content = document.getElementById('content').value.trim()
+
+      const isFileMode =
+        document.getElementById('mode-file').style.display !== 'none'
+
       const resultEl = document.getElementById('result')
-      const btn = document.getElementById('submitBtn')
+      const button = document.getElementById('submitBtn')
 
-      // แก้จุดที่ 2: เช็คว่า FileReader เสร็จหรือยัง
-      if (isFileMode && !fileReady && !url) {
-        alert('กรุณารอให้ไฟล์โหลดเสร็จก่อน')
-        return
+      if (isFileMode) {
+        if (!selectedPdf) {
+          alert('กรุณาแนบไฟล์ PDF ก่อน')
+          return
+        }
+      } else {
+        if (!content) {
+          alert('กรุณาวางข้อความก่อน')
+          return
+        }
+
+        if (content.length > MAX_SOURCE_CHARS) {
+          const confirmed = window.confirm(
+            `ข้อความยาวเกิน ${MAX_SOURCE_CHARS.toLocaleString()} ตัวอักษร ระบบจะตัดข้อความส่วนเกินออก\n\nดำเนินการต่อหรือไม่?`
+          )
+
+          if (!confirmed) return
+
+          content = content.slice(0, MAX_SOURCE_CHARS)
+        }
       }
 
-      const body = { url }
-      if (isFileMode && fileBase64) {
-        body.fileBase64 = fileBase64
-        body.fileType = fileType || 'text/plain'
-      } else if (!isFileMode && content) {
-        body.content = content
+      const formData = new FormData()
+
+      formData.append('url', url)
+
+      if (isFileMode) {
+        formData.append('file', selectedPdf, selectedPdf.name)
+      } else {
+        formData.append('content', content)
       }
 
-      if (!body.url && !body.content && !body.fileBase64) {
-        alert('กรุณาใส่ URL วางข้อความ หรือแนบไฟล์ TXT')
-        return
-      }
+      button.disabled = true
+      button.textContent = 'กำลังสกัดข้อมูล...'
+      button.style.background = '#94a3b8'
 
-      // แก้จุดที่ 1: disable ปุ่มระหว่างรอ
-      btn.disabled = true
-      btn.textContent = 'กำลังวิเคราะห์...'
-      btn.style.background = '#94a3b8'
-      resultEl.textContent = 'กำลังวิเคราะห์...'
+      resultEl.textContent = 'กำลังอ่านข้อความและวิเคราะห์...'
 
       try {
         const response = await fetch('/api/funding/extract', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
+          body: formData
         })
 
-        const data = await response.json()
+        const data = await getResponseJson(response)
 
         if (!response.ok || !data.success) {
-          resultEl.textContent = `เกิดข้อผิดพลาด: ${data.error || 'ไม่สามารถสกัดข้อมูลได้'}`
+          resultEl.textContent =
+            `เกิดข้อผิดพลาด: ${data.error || 'ไม่สามารถสกัดข้อมูลได้'}`
           return
         }
 
         resultEl.textContent = JSON.stringify(data, null, 2)
       } catch (error) {
-        resultEl.textContent = `เกิดข้อผิดพลาดในการเชื่อมต่อ: ${error.message}`
+        resultEl.textContent =
+          `เกิดข้อผิดพลาดในการเชื่อมต่อ: ${error.message}`
       } finally {
-        // คืนสถานะปุ่มทุกกรณี
-        btn.disabled = false
-        btn.textContent = 'สกัดข้อมูล'
-        btn.style.background = '#0284c7'
+        button.disabled = false
+        button.textContent = 'สกัดข้อมูล'
+        button.style.background = '#0284c7'
       }
     }
   </script>
