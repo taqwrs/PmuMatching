@@ -1,5 +1,5 @@
 import Groq from "groq-sdk";
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 import { ensureCaptchaVerified, CaptchaErrorClass } from "@/lib/utils/captcha";
 
 export const runtime = "nodejs";
@@ -37,6 +37,7 @@ export async function POST(request) {
       );
     }
 
+    const supabase = getSupabase()
     const { data: fundings, error: fundingError } = await supabase
       .from("funding_sources")
       .select("id, name, requirements, deadline, status, url");
@@ -186,6 +187,7 @@ reason_mismatch เขียน 1-2 ประโยค
     // บันทึกเฉพาะเมื่อมีชื่อโครงการ และมีผลจับคู่มากกว่า 0%
     if (cleanProposalTitle && results.length > 0) {
       try {
+        const supabase = getSupabase()
         const { data: proposal, error: proposalError } = await supabase
           .from("proposals")
           .insert({

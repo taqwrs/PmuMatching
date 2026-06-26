@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 import { ensureCaptchaVerified, CaptchaErrorClass } from '@/lib/utils/captcha'
 
 const ALLOWED_STATUS = ['open', 'closed', 'upcoming']
@@ -81,6 +81,7 @@ export async function POST(request) {
       )
     }
 
+    const supabase = getSupabase()
     const { data, error } = await supabase
       .from('funding_sources')
       .insert({
