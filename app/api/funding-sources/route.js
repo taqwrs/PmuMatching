@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { ensureCaptchaVerified, CaptchaErrorClass } from '@/lib/utils/captcha'
 
 const ALLOWED_STATUS = ['open', 'closed', 'upcoming']
 
@@ -57,6 +58,7 @@ function normalizeUrl(value) {
 
 export async function POST(request) {
   try {
+    ensureCaptchaVerified(request)
     const body = await request.json()
 
     const name = cleanText(body.name, 500)
@@ -106,6 +108,13 @@ export async function POST(request) {
     })
   } catch (error) {
     console.error('CREATE FUNDING ERROR:', error)
+
+    if (error instanceof CaptchaErrorClass) {
+      return Response.json(
+        { success: false, error: error.message },
+        { status: error.status },
+      )
+    }
 
     return Response.json(
       { success: false, error: 'ข้อมูลที่ส่งมาไม่ถูกต้อง' },

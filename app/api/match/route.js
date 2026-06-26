@@ -1,5 +1,6 @@
 import Groq from "groq-sdk";
 import { supabase } from "@/lib/supabase";
+import { ensureCaptchaVerified, CaptchaErrorClass } from "@/lib/utils/captcha";
 
 export const runtime = "nodejs";
 
@@ -23,6 +24,7 @@ function normalizeScore(value) {
 
 export async function POST(request) {
   try {
+    ensureCaptchaVerified(request)
     const { abstract, proposalTitle } = await request.json();
 
     const cleanAbstract = cleanText(abstract, MAX_ABSTRACT_CHARS);
@@ -221,6 +223,14 @@ reason_mismatch เขียน 1-2 ประโยค
     return response;
   } catch (err) {
     console.error("MATCH ERROR:", err.message);
+
+    if (err instanceof CaptchaErrorClass) {
+      return Response.json(
+        { success: false, error: err.message },
+        { status: err.status },
+      );
+    }
+
     return Response.json(
       { success: false, error: err.message || "เกิดข้อผิดพลาดในการวิเคราะห์" },
       { status: 500 },

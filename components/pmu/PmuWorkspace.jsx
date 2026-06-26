@@ -3,6 +3,7 @@
 import { useState } from "react";
 import ProposalMatcher from "@/components/pmu/ProposalMatcher";
 import FundingExtractor from "@/components/pmu/FundingExtractor";
+import CaptchaGate from "@/components/pmu/CaptchaGate";
 
 const TABS = {
   match: "match",

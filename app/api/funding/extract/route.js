@@ -1,5 +1,6 @@
 import Groq from "groq-sdk";
 import { extractText, getDocumentProxy } from "unpdf";
+import { ensureCaptchaVerified, CaptchaErrorClass } from "@/lib/utils/captcha";
 
 export const runtime = "nodejs";
 
@@ -305,6 +306,7 @@ ${plainText}
 
 export async function POST(request) {
   try {
+    ensureCaptchaVerified(request)
     const formData = await request.formData();
 
     const url = validateReferenceUrl(getFormText(formData, "url"));
@@ -374,6 +376,10 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error("EXTRACT FUNDING ERROR:", error?.message);
+
+    if (error instanceof CaptchaErrorClass) {
+      return errorResponse(error.message, error.status);
+    }
 
     if (error instanceof AppError) {
       return errorResponse(error.message, error.status);

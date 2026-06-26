@@ -1,4 +1,5 @@
 import { extractText, getDocumentProxy } from 'unpdf'
+import { ensureCaptchaVerified, CaptchaErrorClass } from '@/lib/utils/captcha'
 
 export const runtime = 'nodejs'
 
@@ -111,6 +112,7 @@ async function extractPdfText(buffer) {
 
 export async function POST(request) {
   try {
+    ensureCaptchaVerified(request)
     const formData = await request.formData()
     const file = formData.get('file')
 
@@ -133,6 +135,10 @@ export async function POST(request) {
     })
   } catch (err) {
     console.error('PDF UPLOAD ERROR:', err?.message)
+
+    if (err instanceof CaptchaErrorClass) {
+      return errorResponse(err.message, err.status)
+    }
 
     if (err instanceof AppError) {
       return errorResponse(err.message, err.status)
