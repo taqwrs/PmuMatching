@@ -9,9 +9,9 @@ const groq = new Groq({
 
 const GROQ_MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
 
-const MAX_SOURCE_CHARS = 12000;
+const MAX_SOURCE_CHARS = 8000;
 const MAX_PDF_BYTES = 10 * 1024 * 1024;
-const GROQ_TIMEOUT_MS = 30000;
+const GROQ_TIMEOUT_MS = 60000;
 
 class AppError extends Error {
   constructor(message, status = 400) {

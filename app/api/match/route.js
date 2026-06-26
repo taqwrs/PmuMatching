@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const MAX_ABSTRACT_CHARS = 12000;
-const GROQ_TIMEOUT_MS = 30000;
+const GROQ_TIMEOUT_MS = 60000;
 const MIN_SCORE_TO_SAVE = 1; // ไม่บันทึกถ้าทุกแหล่งทุนได้ 0
 
 function cleanText(value, maxLength = 2000) {
@@ -67,7 +67,7 @@ export async function POST(request) {
     const groqPromise = groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       temperature: 0.2,
-      max_completion_tokens: 2500,
+      max_completion_tokens: 2000,
       response_format: { type: "json_object" },
       messages: [
         {
