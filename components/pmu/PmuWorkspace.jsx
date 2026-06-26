@@ -40,12 +40,16 @@ export default function PmuWorkspace() {
                 ระบบจับคู่โครงการกับแหล่งทุน
               </h1>
               <p className="mt-1.5 text-base-content/60 max-w-2xl">
-                วิเคราะห์ความเหมาะสมของโครงการ และสกัดข้อมูลประกาศแหล่งทุนด้วย AI
+                วิเคราะห์ความเหมาะสมของโครงการ และสกัดข้อมูลประกาศแหล่งทุนด้วย
+                AI
               </p>
             </div>
           </div>
         </header>
-
+        {/* Captcha */}
+        <div className="mb-6">
+          <CaptchaGate />
+        </div>
         {/* Tabs */}
         <div className="mb-6">
           <div className="relative flex gap-1 rounded-2xl bg-base-200/80 p-1 shadow-inner">
@@ -53,7 +57,10 @@ export default function PmuWorkspace() {
             <div
               className="absolute top-1 bottom-1 w-1/2 rounded-xl bg-base-100 shadow-sm transition-all duration-300 ease-out"
               style={{
-                transform: activeTab === TABS.match ? "translateX(0)" : "translateX(100%)",
+                transform:
+                  activeTab === TABS.match
+                    ? "translateX(0)"
+                    : "translateX(100%)",
                 width: "calc(50% - 4px)",
               }}
             />
@@ -69,7 +76,17 @@ export default function PmuWorkspace() {
               }`}
               onClick={() => setActiveTab(TABS.match)}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                 <circle cx="12" cy="7" r="4" />
                 <path d="M18 8l2 2 4-4" />
@@ -88,7 +105,17 @@ export default function PmuWorkspace() {
               }`}
               onClick={() => setActiveTab(TABS.funding)}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="7 10 12 15 17 10" />
                 <line x1="12" y1="15" x2="12" y2="3" />
@@ -107,7 +134,11 @@ export default function PmuWorkspace() {
 
         {/* Content */}
         <div className="transition-all duration-300">
-          {activeTab === TABS.match ? <ProposalMatcher /> : <FundingExtractor />}
+          {activeTab === TABS.match ? (
+            <ProposalMatcher />
+          ) : (
+            <FundingExtractor />
+          )}
         </div>
 
         {/* Footer */}
@@ -119,7 +150,17 @@ export default function PmuWorkspace() {
           </div>
           <div className="flex items-center gap-3">
             <button className="hover:text-base-content/60 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <circle cx="12" cy="12" r="10" />
                 <line x1="9.09" y1="9" x2="9.1" y2="9.01" />
                 <line x1="14.09" y1="9" x2="14.1" y2="9.01" />
@@ -127,40 +168,33 @@ export default function PmuWorkspace() {
               </svg>
             </button>
             <button className="hover:text-base-content/60 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M4 4v16h16" />
                 <polyline points="20 10 12 18 8 14" />
               </svg>
             </button>
             <button className="hover:text-base-content/60 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                <path d="M2 17l10 5 10-5" />
-                <path d="M2 12l10 5 10-5" />
-              </svg>
-            </button>
-          </div>
-        </footer>
-      </div>
-      <CaptchaGate />
-    </main>
-          <div className="flex items-center gap-3">
-            <button className="hover:text-base-content/60 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="9.09" y1="9" x2="9.1" y2="9.01" />
-                <line x1="14.09" y1="9" x2="14.1" y2="9.01" />
-                <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-              </svg>
-            </button>
-            <button className="hover:text-base-content/60 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 4v16h16" />
-                <polyline points="20 10 12 18 8 14" />
-              </svg>
-            </button>
-            <button className="hover:text-base-content/60 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M12 2L2 7l10 5 10-5-10-5z" />
                 <path d="M2 17l10 5 10-5" />
                 <path d="M2 12l10 5 10-5" />
