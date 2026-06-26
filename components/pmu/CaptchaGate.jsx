@@ -245,7 +245,7 @@ export default function CaptchaGate() {
         </div>
 
         <p className="mt-6 text-xs text-base-content/45">
-          ระบบจะจดจำการยืนยันไว้เป็นเวลา 1 ชั่วโมง
+          ระบบจะจดจำการยืนยันไว้เป็นเวลา 1 วัน
         </p>
       </div>
     </div>
