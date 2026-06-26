@@ -142,6 +142,33 @@ export default function PmuWorkspace() {
           </div>
         </footer>
       </div>
+      <CaptchaGate />
+    </main>
+          <div className="flex items-center gap-3">
+            <button className="hover:text-base-content/60 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="9.09" y1="9" x2="9.1" y2="9.01" />
+                <line x1="14.09" y1="9" x2="14.1" y2="9.01" />
+                <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+              </svg>
+            </button>
+            <button className="hover:text-base-content/60 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 4v16h16" />
+                <polyline points="20 10 12 18 8 14" />
+              </svg>
+            </button>
+            <button className="hover:text-base-content/60 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
+              </svg>
+            </button>
+          </div>
+        </footer>
+      </div>
     </main>
   );
 }
