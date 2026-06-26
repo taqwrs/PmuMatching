@@ -20,16 +20,27 @@ function loadRecaptchaScript(onLoad) {
   );
 
   if (existingScript) {
+    if (
+      window.grecaptcha?.render ||
+      existingScript.getAttribute("data-loaded") === "true" ||
+      existingScript.readyState === "complete"
+    ) {
+      onLoad();
+      return;
+    }
+
     existingScript.addEventListener("load", onLoad, { once: true });
     return;
   }
 
   const script = document.createElement("script");
-  script.src =
-    "https://www.google.com/recaptcha/api.js?render=explicit";
+  script.src = "https://www.google.com/recaptcha/api.js?render=explicit";
   script.async = true;
   script.defer = true;
-  script.onload = onLoad;
+  script.onload = () => {
+    script.setAttribute("data-loaded", "true");
+    onLoad();
+  };
 
   document.body.appendChild(script);
 }
@@ -89,74 +100,86 @@ export default function CaptchaGate() {
 
     loadRecaptchaScript(() => {
       if (!containerRef.current) return;
-      if (!window.grecaptcha?.render) return;
+      if (!window.grecaptcha) return;
       if (isRenderingRef.current) return;
 
-      try {
-        isRenderingRef.current = true;
+      const renderWidget = () => {
+        if (!containerRef.current) return;
+        if (!window.grecaptcha?.render) return;
+        if (isRenderingRef.current) return;
 
-        widgetIdRef.current = window.grecaptcha.render(
-          containerRef.current,
-          {
-            sitekey: RECAPTCHA_SITE_KEY,
+        try {
+          isRenderingRef.current = true;
 
-            callback: async (token) => {
-              try {
-                setError("");
+          widgetIdRef.current = window.grecaptcha.render(
+            containerRef.current,
+            {
+              sitekey: RECAPTCHA_SITE_KEY,
 
-                const response = await fetch(CAPTCHA_VERIFY_URL, {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({ token }),
-                });
+              callback: async (token) => {
+                try {
+                  setError("");
 
-                const data = await response.json();
+                  const response = await fetch(CAPTCHA_VERIFY_URL, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ token }),
+                  });
 
-                if (response.ok && data.success) {
-                  setVerified(true);
-                  return;
+                  const data = await response.json();
+
+                  if (response.ok && data.success) {
+                    setVerified(true);
+                    return;
+                  }
+
+                  setError(
+                    data.error || "ไม่สามารถยืนยัน reCAPTCHA ได้",
+                  );
+
+                  resetCaptcha();
+                } catch (requestError) {
+                  console.error(
+                    "Captcha verification error:",
+                    requestError,
+                  );
+
+                  setError("เกิดข้อผิดพลาดในการยืนยัน reCAPTCHA");
+                  resetCaptcha();
                 }
+              },
 
+              "error-callback": () => {
                 setError(
-                  data.error || "ไม่สามารถยืนยัน reCAPTCHA ได้",
+                  "ไม่สามารถโหลด reCAPTCHA ได้ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่",
+                );
+              },
+
+              "expired-callback": () => {
+                setError(
+                  "การยืนยันหมดอายุ กรุณาทำเครื่องหมายใหม่อีกครั้ง",
                 );
 
                 resetCaptcha();
-              } catch (requestError) {
-                console.error(
-                  "Captcha verification error:",
-                  requestError,
-                );
-
-                setError("เกิดข้อผิดพลาดในการยืนยัน reCAPTCHA");
-                resetCaptcha();
-              }
+              },
             },
+          );
 
-            "error-callback": () => {
-              setError(
-                "ไม่สามารถโหลด reCAPTCHA ได้ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่",
-              );
-            },
+          setWidgetRendered(true);
+        } catch (renderError) {
+          console.error("reCAPTCHA render error:", renderError);
 
-            "expired-callback": () => {
-              setError(
-                "การยืนยันหมดอายุ กรุณาทำเครื่องหมายใหม่อีกครั้ง",
-              );
+          isRenderingRef.current = false;
+          setError("ไม่สามารถแสดง reCAPTCHA ได้");
+        }
+      };
 
-              resetCaptcha();
-            },
-          },
-        );
-
-        setWidgetRendered(true);
-      } catch (renderError) {
-        console.error("reCAPTCHA render error:", renderError);
-
-        isRenderingRef.current = false;
-        setError("ไม่สามารถแสดง reCAPTCHA ได้");
+      if (window.grecaptcha.ready) {
+        window.grecaptcha.ready(renderWidget);
+      } else {
+        renderWidget();
       }
     });
   }, [loading, verified, widgetRendered]);
