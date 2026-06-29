@@ -3,12 +3,15 @@ import { getSupabase } from "@/lib/supabase";
 import { ensureCaptchaVerified, CaptchaErrorClass } from "@/lib/utils/captcha";
 
 export const runtime = "nodejs";
+export const maxDuration = 300;
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const MAX_ABSTRACT_CHARS = 12000;
 const GROQ_TIMEOUT_MS = 60000;
 const MIN_SCORE_TO_SAVE = 1; // ไม่บันทึกถ้าทุกแหล่งทุนได้ 0
+const MATCH_BATCH_SIZE = 10;
+const MATCH_BATCH_RETRY_LIMIT = 1;
 
 function cleanText(value, maxLength = 2000) {
   // แก้จุดที่ 4: เปลี่ยน default เป็น 2000
@@ -20,6 +23,49 @@ function normalizeScore(value) {
   const score = Number(value);
   if (!Number.isFinite(score)) return 0;
   return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+function fundingDebugLabel(funding) {
+  return `${funding.id}: ${cleanText(funding.name, 80) || "Untitled funding"}`;
+}
+
+function chunkArray(items, size) {
+  const chunks = [];
+
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+
+  return chunks;
+}
+
+function buildFundingList(fundings, startIndex = 0) {
+  return fundings
+    .map(
+      (f, i) => `${startIndex + i + 1}. FUNDING_ID: ${f.id}
+ชื่อแหล่งทุน: ${f.name}
+กรอบโจทย์/เงื่อนไข: ${f.requirements || "ไม่ระบุ"}
+วันปิดรับ: ${f.deadline || "ไม่ระบุ"}`,
+    )
+    .join("\n\n");
+}
+
+function summarizeUsage(batchDebugSummaries) {
+  return batchDebugSummaries.reduce(
+    (total, batch) => {
+      for (const attempt of batch.attempts) {
+        const usage = attempt.usage;
+        if (!usage) continue;
+
+        total.prompt_tokens += Number(usage.prompt_tokens) || 0;
+        total.completion_tokens += Number(usage.completion_tokens) || 0;
+        total.total_tokens += Number(usage.total_tokens) || 0;
+      }
+
+      return total;
+    },
+    { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+  );
 }
 
 export async function POST(request) {
@@ -57,25 +103,40 @@ export async function POST(request) {
       );
     }
 
-    const fundingList = fundings
-      .map(
-        (f, i) => `${i + 1}. FUNDING_ID: ${f.id}
-ชื่อแหล่งทุน: ${f.name}
-กรอบโจทย์/เงื่อนไข: ${f.requirements || "ไม่ระบุ"}
-วันปิดรับ: ${f.deadline || "ไม่ระบุ"}`,
-      )
-      .join("\n\n");
+    const fundingBatches = chunkArray(fundings, MATCH_BATCH_SIZE);
+    const rawResults = [];
+    const batchDebugSummaries = [];
 
-    // แก้จุดที่ 1: เพิ่ม Groq timeout
-    const groqPromise = groq.chat.completions.create({
-      model: "meta-llama/llama-4-scout-17b-16e-instruct",
-      temperature: 0.2,
-      max_completion_tokens: 2000,
-      response_format: { type: "json_object" },
-      messages: [
-        {
-          role: "system",
-          content: `คุณคือผู้เชี่ยวชาญด้านการวิจัยและการจับคู่แหล่งทุน
+    for (const [batchIndex, batchFundings] of fundingBatches.entries()) {
+      const batchStartIndex = batchIndex * MATCH_BATCH_SIZE;
+      const batchFundingIds = new Set(batchFundings.map((f) => String(f.id)));
+      const batchResultsByFundingId = new Map();
+      const attemptSummaries = [];
+      let lastBatchError = null;
+
+      for (
+        let attempt = 1;
+        attempt <= MATCH_BATCH_RETRY_LIMIT + 1;
+        attempt += 1
+      ) {
+        const fundingsToEvaluate = batchFundings.filter(
+          (f) => !batchResultsByFundingId.has(String(f.id)),
+        );
+
+        if (fundingsToEvaluate.length === 0) break;
+
+        const fundingList = buildFundingList(fundingsToEvaluate, batchStartIndex);
+
+        try {
+          const groqPromise = groq.chat.completions.create({
+            model: "meta-llama/llama-4-scout-17b-16e-instruct",
+            temperature: 0.2,
+            max_completion_tokens: 2000,
+            response_format: { type: "json_object" },
+            messages: [
+              {
+                role: "system",
+                content: `คุณคือผู้เชี่ยวชาญด้านการวิจัยและการจับคู่แหล่งทุน
 
 ตอบกลับเป็น JSON object เท่านั้น ห้ามใช้ Markdown ห้ามมีข้อความก่อนหรือหลัง JSON
 
@@ -111,43 +172,97 @@ export async function POST(request) {
 reason_match เขียน 2-3 ประโยค
 reason_mismatch เขียน 1-2 ประโยค
 เรียงผลลัพธ์จาก score สูงไปต่ำ`,
-        },
-        {
-          role: "user",
-          content: `ชื่อโครงการ:\n${cleanProposalTitle || "ไม่ระบุ"}\n\nAbstract โครงการ:\n${cleanAbstract}\n\nข้อมูลแหล่งทุน:\n${fundingList}`,
-        },
-      ],
-    });
+              },
+              {
+                role: "user",
+                content: `ชื่อโครงการ:\n${cleanProposalTitle || "ไม่ระบุ"}\n\nAbstract โครงการ:\n${cleanAbstract}\n\nBatch: ${batchIndex + 1}/${fundingBatches.length}\nต้องประเมินเฉพาะ FUNDING_ID ใน batch นี้ และต้องตอบให้ครบทุก FUNDING_ID ที่ได้รับ\n\nข้อมูลแหล่งทุน:\n${fundingList}`,
+              },
+            ],
+          });
 
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(
-        () => reject(new Error("AI ใช้เวลานานเกินกำหนด")),
-        GROQ_TIMEOUT_MS,
-      ),
-    );
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(
+              () => reject(new Error("AI ใช้เวลานานเกินกำหนด")),
+              GROQ_TIMEOUT_MS,
+            ),
+          );
 
-    const completion = await Promise.race([groqPromise, timeoutPromise]);
-    const modelContent = completion.choices?.[0]?.message?.content;
+          const completion = await Promise.race([groqPromise, timeoutPromise]);
+          const modelContent = completion.choices?.[0]?.message?.content;
 
-    if (!modelContent) throw new Error("AI ไม่ส่งผลลัพธ์กลับมา");
+          if (!modelContent) throw new Error("AI ไม่ส่งผลลัพธ์กลับมา");
 
-    let raw;
-    try {
-      raw = JSON.parse(modelContent);
-    } catch {
-      throw new Error("AI ส่งผลลัพธ์ที่ไม่ใช่ JSON");
+          let batchRaw;
+          try {
+            batchRaw = JSON.parse(modelContent);
+          } catch {
+            throw new Error("AI ส่งผลลัพธ์ที่ไม่ใช่ JSON");
+          }
+
+          if (!Array.isArray(batchRaw.results)) {
+            throw new Error("รูปแบบผลลัพธ์จาก AI ไม่ถูกต้อง");
+          }
+
+          for (const item of batchRaw.results) {
+            const fundingId = String(item?.funding_id || "").trim();
+            rawResults.push(item);
+
+            if (batchFundingIds.has(fundingId)) {
+              batchResultsByFundingId.set(fundingId, item);
+            }
+          }
+
+          lastBatchError = null;
+          attemptSummaries.push({
+            attempt,
+            requestedFundingCount: fundingsToEvaluate.length,
+            aiResultCount: batchRaw.results.length,
+            collectedValidResultCount: batchResultsByFundingId.size,
+            missingResultCount: batchFundings.length - batchResultsByFundingId.size,
+            usage: completion.usage || null,
+          });
+
+          if (batchResultsByFundingId.size === batchFundings.length) break;
+        } catch (batchErr) {
+          lastBatchError = batchErr;
+          attemptSummaries.push({
+            attempt,
+            requestedFundingCount: fundingsToEvaluate.length,
+            error: batchErr.message,
+          });
+
+          if (attempt > MATCH_BATCH_RETRY_LIMIT) {
+            throw batchErr;
+          }
+        }
+      }
+
+      batchDebugSummaries.push({
+        batch: batchIndex + 1,
+        fundingCount: batchFundings.length,
+        validAiResultCount: batchResultsByFundingId.size,
+        missingAiResultCount: batchFundings.length - batchResultsByFundingId.size,
+        attempts: attemptSummaries,
+        lastError: lastBatchError?.message || null,
+      });
     }
 
-    if (!Array.isArray(raw.results))
-      throw new Error("รูปแบบผลลัพธ์จาก AI ไม่ถูกต้อง");
+    const raw = { results: rawResults };
 
     const fundingIds = new Set(fundings.map((f) => String(f.id)));
     const aiResultsByFundingId = new Map();
+    const invalidAiFundingIds = [];
+    const duplicateAiFundingIds = [];
 
     for (const item of raw.results) {
       const fundingId = String(item?.funding_id || "").trim();
       if (fundingIds.has(fundingId)) {
+        if (aiResultsByFundingId.has(fundingId)) {
+          duplicateAiFundingIds.push(fundingId);
+        }
         aiResultsByFundingId.set(fundingId, item);
+      } else if (fundingId) {
+        invalidAiFundingIds.push(fundingId);
       }
     }
 
@@ -177,6 +292,56 @@ reason_mismatch เขียน 1-2 ประโยค
     const results = allResults.filter(
       (item) => item.score >= MIN_SCORE_TO_SAVE,
     );
+
+    const missingAiFundings = fundings.filter(
+      (f) => !aiResultsByFundingId.has(String(f.id)),
+    );
+    const answeredBelowMinScoreResults = allResults.filter(
+      (item) =>
+        aiResultsByFundingId.has(String(item.funding_id)) &&
+        item.score < MIN_SCORE_TO_SAVE,
+    );
+
+    console.info("[MATCH DEBUG] summary", {
+      fundingCount: fundings.length,
+      aiResultCount: raw.results.length,
+      validAiResultCount: aiResultsByFundingId.size,
+      invalidAiResultCount: invalidAiFundingIds.length,
+      duplicateAiResultCount: duplicateAiFundingIds.length,
+      missingAiResultCount: missingAiFundings.length,
+      answeredBelowMinScoreCount: answeredBelowMinScoreResults.length,
+      savedResultCount: results.length,
+      minScoreToSave: MIN_SCORE_TO_SAVE,
+      batchSize: MATCH_BATCH_SIZE,
+      batchRetryLimit: MATCH_BATCH_RETRY_LIMIT,
+      totalUsage: summarizeUsage(batchDebugSummaries),
+      batches: batchDebugSummaries,
+    });
+
+    if (missingAiFundings.length > 0) {
+      console.info(
+        "[MATCH DEBUG] missing AI funding results",
+        missingAiFundings.map(fundingDebugLabel),
+      );
+    }
+
+    if (answeredBelowMinScoreResults.length > 0) {
+      console.info(
+        "[MATCH DEBUG] answered but filtered by score",
+        answeredBelowMinScoreResults.map((item) => ({
+          funding_id: item.funding_id,
+          funding_name: item.funding_name,
+          score: item.score,
+        })),
+      );
+    }
+
+    if (invalidAiFundingIds.length > 0 || duplicateAiFundingIds.length > 0) {
+      console.info("[MATCH DEBUG] AI funding id issues", {
+        invalidAiFundingIds,
+        duplicateAiFundingIds,
+      });
+    }
 
     const response = Response.json({
       success: true,

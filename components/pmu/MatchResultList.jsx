@@ -4,8 +4,22 @@ import { useState } from "react";
 import { isSafeHttpUrl } from "@/lib/utils/http";
 import {
   downloadMatchReportExcel,
+  getReportLimitLabel,
+  getReportStatusFilterLabel,
   printMatchReportPdf,
 } from "@/lib/utils/matchReportExport";
+
+const EXPORT_LIMIT_OPTIONS = [
+  { value: "3", label: "Top 3" },
+  { value: "5", label: "Top 5" },
+  { value: "10", label: "Top 10" },
+  { value: "all", label: "ทั้งหมด" },
+];
+
+const EXPORT_STATUS_OPTIONS = [
+  { value: "open", label: "เปิดรับอยู่" },
+  { value: "all", label: "ทุกสถานะ" },
+];
 
 function scoreClasses(score) {
   if (score >= 70) return "text-success";
@@ -65,6 +79,11 @@ function getFundingStatusClass(status) {
   if (status === "closed") return "badge-error";
 
   return "badge-ghost";
+}
+
+function filterResultsByStatus(results, statusFilter) {
+  if (statusFilter === "all") return results;
+  return results.filter((item) => item?.status === statusFilter);
 }
 
 function formatDeadline(deadline) {
@@ -164,6 +183,8 @@ function PrintIcon() {
 export default function MatchResultList({ results = [], proposalTitle = "" }) {
   const [showAll, setShowAll] = useState(false);
   const [exportError, setExportError] = useState("");
+  const [exportLimit, setExportLimit] = useState("3");
+  const [exportStatusFilter, setExportStatusFilter] = useState("open");
 
   const matchedResults = Array.isArray(results)
     ? results.filter((item) => Number(item?.score) > 0)
@@ -176,18 +197,40 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
     : matchedResults.slice(0, 5);
 
   const hiddenCount = Math.max(0, matchedResults.length - 5);
+  const exportLimitLabel = getReportLimitLabel(exportLimit);
+  const exportStatusLabel = getReportStatusFilterLabel(exportStatusFilter);
+  const exportableResults = filterResultsByStatus(
+    matchedResults,
+    exportStatusFilter,
+  );
 
   function handleExcelExport() {
     setExportError("");
-    downloadMatchReportExcel({ results: matchedResults, proposalTitle });
+    if (!exportableResults.length) {
+      setExportError("ไม่พบแหล่งทุนตามสถานะที่เลือกสำหรับส่งออก");
+      return;
+    }
+
+    downloadMatchReportExcel({
+      results: matchedResults,
+      proposalTitle,
+      limit: exportLimit,
+      statusFilter: exportStatusFilter,
+    });
   }
 
   function handlePdfExport() {
     setExportError("");
+    if (!exportableResults.length) {
+      setExportError("ไม่พบแหล่งทุนตามสถานะที่เลือกสำหรับส่งออก");
+      return;
+    }
 
     const opened = printMatchReportPdf({
       results: matchedResults,
       proposalTitle,
+      limit: exportLimit,
+      statusFilter: exportStatusFilter,
     });
 
     if (!opened) {
@@ -229,23 +272,53 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2">
+          <select
+            aria-label="จำนวนรายการที่ส่งออก"
+            className="select select-sm select-bordered w-28"
+            value={exportLimit}
+            onChange={(event) => setExportLimit(event.target.value)}
+          >
+            {EXPORT_LIMIT_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+
+          <select
+            aria-label="สถานะแหล่งทุนที่ส่งออก"
+            className="select select-sm select-bordered w-36"
+            value={exportStatusFilter}
+            onChange={(event) => setExportStatusFilter(event.target.value)}
+          >
+            {EXPORT_STATUS_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+
           <button
             type="button"
-            className="btn btn-sm btn-outline gap-2"
+            className="btn btn-secondary btn-sm btn-outline gap-2"
             onClick={handlePdfExport}
           >
             <PrintIcon />
-            PDF Top 3
+            PDF {exportLimitLabel}
           </button>
 
           <button
             type="button"
-            className="btn btn-sm btn-outline gap-2"
+            className="btn btn-accent btn-sm btn-outline gap-2"
             onClick={handleExcelExport}
           >
             <DownloadIcon />
-            Excel Top 3
+            Excel {exportLimitLabel}
           </button>
+
+          <span className="badge badge-ghost hidden px-3 py-3 text-xs sm:inline-flex">
+            {exportStatusLabel}: {exportableResults.length} รายการ
+          </span>
 
           <span className="badge badge-success gap-1.5 px-4 py-3">
             <StatusIcon />
