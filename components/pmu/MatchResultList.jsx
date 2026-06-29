@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import { isSafeHttpUrl } from "@/lib/utils/http";
+import {
+  downloadMatchReportExcel,
+  printMatchReportPdf,
+} from "@/lib/utils/matchReportExport";
 
 function scoreClasses(score) {
   if (score >= 70) return "text-success";
@@ -115,8 +119,51 @@ function StatusIcon() {
   );
 }
 
-export default function MatchResultList({ results = [] }) {
+function DownloadIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" y1="15" x2="12" y2="3" />
+    </svg>
+  );
+}
+
+function PrintIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="6 9 6 2 18 2 18 9" />
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+      <rect x="6" y="14" width="12" height="8" />
+    </svg>
+  );
+}
+
+export default function MatchResultList({ results = [], proposalTitle = "" }) {
   const [showAll, setShowAll] = useState(false);
+  const [exportError, setExportError] = useState("");
 
   const matchedResults = Array.isArray(results)
     ? results.filter((item) => Number(item?.score) > 0)
@@ -129,6 +176,24 @@ export default function MatchResultList({ results = [] }) {
     : matchedResults.slice(0, 5);
 
   const hiddenCount = Math.max(0, matchedResults.length - 5);
+
+  function handleExcelExport() {
+    setExportError("");
+    downloadMatchReportExcel({ results: matchedResults, proposalTitle });
+  }
+
+  function handlePdfExport() {
+    setExportError("");
+
+    const opened = printMatchReportPdf({
+      results: matchedResults,
+      proposalTitle,
+    });
+
+    if (!opened) {
+      setExportError("ไม่สามารถเปิดหน้าต่างรายงาน PDF ได้ กรุณาอนุญาต popup แล้วลองใหม่");
+    }
+  }
 
   return (
     <section className="mt-8">
@@ -163,11 +228,37 @@ export default function MatchResultList({ results = [] }) {
           </div>
         </div>
 
-        <span className="badge badge-success gap-1.5 px-4 py-3">
-          <StatusIcon />
-          {matchedResults.length} รายการ
-        </span>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <button
+            type="button"
+            className="btn btn-sm btn-outline gap-2"
+            onClick={handlePdfExport}
+          >
+            <PrintIcon />
+            PDF Top 3
+          </button>
+
+          <button
+            type="button"
+            className="btn btn-sm btn-outline gap-2"
+            onClick={handleExcelExport}
+          >
+            <DownloadIcon />
+            Excel Top 3
+          </button>
+
+          <span className="badge badge-success gap-1.5 px-4 py-3">
+            <StatusIcon />
+            {matchedResults.length} รายการ
+          </span>
+        </div>
       </div>
+
+      {exportError && (
+        <div className="alert alert-warning mb-4 text-sm">
+          <span>{exportError}</span>
+        </div>
+      )}
 
       <div className="space-y-4">
         {visibleResults.map((item, index) => {

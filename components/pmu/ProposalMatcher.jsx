@@ -284,7 +284,7 @@ export default function ProposalMatcher() {
         {/* Results */}
         {results.length > 0 && (
           <div className="mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <MatchResultList results={results} />
+            <MatchResultList results={results} proposalTitle={title} />
           </div>
         )}
       </div>
