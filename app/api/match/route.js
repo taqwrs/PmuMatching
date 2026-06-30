@@ -17,6 +17,7 @@ const GROQ_TIMEOUT_MS = 60000;
 const MIN_SCORE_TO_SAVE = 1;
 const MATCH_BATCH_SIZE = 10;
 const MATCH_BATCH_RETRY_LIMIT = 1;
+const DEFAULT_PROPOSAL_TITLE = "Untitled proposal";
 
 // ─── Groq client ──────────────────────────────────────────────────────────────
 
@@ -351,16 +352,21 @@ async function closeExpiredFundings(supabase, fundings) {
 
 async function saveMatchResults({ proposalTitle, abstract, results }) {
   const supabase = getSupabase();
+  const title = cleanText(proposalTitle, 500) || DEFAULT_PROPOSAL_TITLE;
 
   const { data: proposal, error: proposalError } = await supabase
     .from("proposals")
-    .insert({ title: proposalTitle, content_text: abstract })
+    .insert({ title, content_text: abstract })
     .select()
     .single();
 
   if (proposalError) {
     console.error("PROPOSAL INSERT ERROR:", proposalError.message);
-    return;
+    throw new Error(`ไม่สามารถบันทึกข้อมูลโครงการได้: ${proposalError.message}`);
+  }
+
+  if (results.length === 0) {
+    return proposal;
   }
 
   const matchRows = results.map((result) => ({
@@ -372,7 +378,12 @@ async function saveMatchResults({ proposalTitle, abstract, results }) {
   }));
 
   const { error: matchError } = await supabase.from("match_results").insert(matchRows);
-  if (matchError) console.error("MATCH INSERT ERROR:", matchError.message);
+  if (matchError) {
+    console.error("MATCH INSERT ERROR:", matchError.message);
+    throw new Error(`ไม่สามารถบันทึกผลการจับคู่ได้: ${matchError.message}`);
+  }
+
+  return proposal;
 }
 
 // ─── Route handler ────────────────────────────────────────────────────────────
@@ -424,16 +435,18 @@ export async function POST(request) {
       batchDebugSummaries,
     });
 
-    // ส่ง response ก่อน แล้วค่อย save (fire-and-forget)
-    const response = Response.json({ success: true, results, total: results.length });
+    const savedProposal = await saveMatchResults({
+      proposalTitle: cleanProposalTitle,
+      abstract: cleanAbstract,
+      results,
+    });
 
-    if (cleanProposalTitle && results.length > 0) {
-      saveMatchResults({ proposalTitle: cleanProposalTitle, abstract: cleanAbstract, results }).catch(
-        (err) => console.error("SAVE ERROR:", err.message),
-      );
-    }
-
-    return response;
+    return Response.json({
+      success: true,
+      results,
+      total: results.length,
+      proposalId: savedProposal.id,
+    });
   } catch (err) {
     console.error("MATCH ERROR:", err.message);
 
