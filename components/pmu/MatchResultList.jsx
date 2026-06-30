@@ -21,6 +21,8 @@ const EXPORT_STATUS_OPTIONS = [
   { value: "all", label: "ทุกสถานะ" },
 ];
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function scoreClasses(score) {
   if (score >= 70) return "text-success";
   if (score >= 40) return "text-warning";
@@ -84,6 +86,91 @@ function getFundingStatusClass(status) {
 function filterResultsByStatus(results, statusFilter) {
   if (statusFilter === "all") return results;
   return results.filter((item) => item?.status === statusFilter);
+}
+
+function limitResults(results, limit) {
+  if (limit === "all") return results;
+
+  const numericLimit = Number(limit);
+  if (!Number.isFinite(numericLimit) || numericLimit <= 0) {
+    return results.slice(0, 3);
+  }
+
+  return results.slice(0, Math.floor(numericLimit));
+}
+
+function openGmailDraft({
+  recipientInput,
+  proposalTitle,
+  resultLabel,
+  statusLabel,
+  resultCount,
+}) {
+  const emails = recipientInput
+    .split(",")
+    .map((email) => email.trim())
+    .filter(Boolean);
+
+  if (!emails.length) {
+    return {
+      ok: false,
+      message: "กรุณาระบุอีเมลผู้รับอย่างน้อย 1 รายการ",
+    };
+  }
+
+  const invalidEmails = emails.filter((email) => !EMAIL_PATTERN.test(email));
+
+  if (invalidEmails.length) {
+    return {
+      ok: false,
+      message: "พบรูปแบบอีเมลไม่ถูกต้อง",
+    };
+  }
+
+  if (!resultCount) {
+    return {
+      ok: false,
+      message: "ไม่พบแหล่งทุนตามสถานะที่เลือกสำหรับสร้างอีเมล",
+    };
+  }
+
+  const safeProposalTitle = proposalTitle?.trim() || "ไม่ระบุชื่อโครงการ";
+  const subject = `ผลการจับคู่แหล่งทุน: ${safeProposalTitle}`;
+  const body = [
+    "เรียน ผู้เกี่ยวข้อง",
+    "",
+    "ขอส่งผลการจับคู่แหล่งทุนสำหรับโครงการ:",
+    safeProposalTitle,
+    "",
+    `จำนวนผลลัพธ์: ${resultLabel}`,
+    `สถานะ: ${statusLabel}`,
+    `จำนวนรายการ: ${resultCount} รายการ`,
+    "",
+    "กรุณาดาวน์โหลดรายงาน PDF หรือ Excel จากระบบ และแนบไฟล์ก่อนกดส่งอีเมล",
+    "",
+    "กรุณาช่วยประเมินความพึงพอใจ",
+    "แบบประเมินความพึงพอใจ: https://forms.gle/7mxfNYgjmM3SwqHs9",
+    "",
+    "ขอแสดงความนับถือ",
+  ].join("\n");
+
+  const gmailUrl = new URL("https://mail.google.com/mail/");
+  gmailUrl.searchParams.set("view", "cm");
+  gmailUrl.searchParams.set("fs", "1");
+  gmailUrl.searchParams.set("to", emails.join(","));
+  gmailUrl.searchParams.set("su", subject);
+  gmailUrl.searchParams.set("body", body);
+
+  try {
+    window.open(gmailUrl.toString(), "_blank", "noopener,noreferrer");
+  } catch {
+    return {
+      ok: false,
+      message: "ไม่สามารถเปิด Gmail ได้ กรุณาลองใหม่อีกครั้ง",
+    };
+  }
+
+  return { ok: true };
 }
 
 function formatDeadline(deadline) {
@@ -185,6 +272,7 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
   const [exportError, setExportError] = useState("");
   const [exportLimit, setExportLimit] = useState("3");
   const [exportStatusFilter, setExportStatusFilter] = useState("open");
+  const [recipientInput, setRecipientInput] = useState("");
 
   const matchedResults = Array.isArray(results)
     ? results.filter((item) => Number(item?.score) > 0)
@@ -203,6 +291,7 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
     matchedResults,
     exportStatusFilter,
   );
+  const emailResults = limitResults(exportableResults, exportLimit);
 
   function handleExcelExport() {
     setExportError("");
@@ -235,6 +324,22 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
 
     if (!opened) {
       setExportError("ไม่สามารถเปิดหน้าต่างรายงาน PDF ได้ กรุณาอนุญาต popup แล้วลองใหม่");
+    }
+  }
+
+  function handleEmailDraft() {
+    setExportError("");
+
+    const result = openGmailDraft({
+      recipientInput,
+      proposalTitle,
+      resultLabel: exportLimitLabel,
+      statusLabel: exportStatusLabel,
+      resultCount: emailResults.length,
+    });
+
+    if (!result.ok) {
+      setExportError(result.message);
     }
   }
 
@@ -271,59 +376,92 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <select
-            aria-label="จำนวนรายการที่ส่งออก"
-            className="select select-sm select-bordered w-28"
-            value={exportLimit}
-            onChange={(event) => setExportLimit(event.target.value)}
-          >
-            {EXPORT_LIMIT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+        <div className="flex w-full flex-col items-stretch gap-2 lg:w-auto lg:items-end">
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <select
+              aria-label="จำนวนรายการที่ส่งออก"
+              className="select select-sm select-bordered w-28"
+              value={exportLimit}
+              onChange={(event) => setExportLimit(event.target.value)}
+            >
+              {EXPORT_LIMIT_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
 
-          <select
-            aria-label="สถานะแหล่งทุนที่ส่งออก"
-            className="select select-sm select-bordered w-36"
-            value={exportStatusFilter}
-            onChange={(event) => setExportStatusFilter(event.target.value)}
-          >
-            {EXPORT_STATUS_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            <select
+              aria-label="สถานะแหล่งทุนที่ส่งออก"
+              className="select select-sm select-bordered w-36"
+              value={exportStatusFilter}
+              onChange={(event) => setExportStatusFilter(event.target.value)}
+            >
+              {EXPORT_STATUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
 
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm btn-outline gap-2"
-            onClick={handlePdfExport}
-          >
-            <PrintIcon />
-            PDF {exportLimitLabel}
-          </button>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm btn-outline gap-2"
+              onClick={handlePdfExport}
+            >
+              <PrintIcon />
+              PDF {exportLimitLabel}
+            </button>
 
-          <button
-            type="button"
-            className="btn btn-accent btn-sm btn-outline gap-2"
-            onClick={handleExcelExport}
-          >
-            <DownloadIcon />
-            Excel {exportLimitLabel}
-          </button>
+            <button
+              type="button"
+              className="btn btn-accent btn-sm btn-outline gap-2"
+              onClick={handleExcelExport}
+            >
+              <DownloadIcon />
+              Excel {exportLimitLabel}
+            </button>
 
-          <span className="badge badge-ghost hidden px-3 py-3 text-xs sm:inline-flex">
-            {exportStatusLabel}: {exportableResults.length} รายการ
-          </span>
+            <span className="badge badge-ghost hidden px-3 py-3 text-xs sm:inline-flex">
+              {exportStatusLabel}: {exportableResults.length} รายการ
+            </span>
 
-          <span className="badge badge-success gap-1.5 px-4 py-3">
-            <StatusIcon />
-            {matchedResults.length} รายการ
-          </span>
+            <span className="badge badge-success gap-1.5 px-4 py-3">
+              <StatusIcon />
+              {matchedResults.length} รายการ
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label
+              className="text-xs font-medium text-base-content/60 lg:text-right"
+              htmlFor="email-recipients"
+            >
+              อีเมลผู้รับ
+            </label>
+            <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <input
+                id="email-recipients"
+                type="text"
+                inputMode="email"
+                className="input input-sm input-bordered w-full sm:w-80"
+                value={recipientInput}
+                onChange={(event) => setRecipientInput(event.target.value)}
+                placeholder="example@email.com, team@email.com"
+                aria-label="อีเมลผู้รับ"
+              />
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={handleEmailDraft}
+              >
+                เปิดอีเมลพร้อมร่างข้อความ
+              </button>
+            </div>
+            <p className="text-xs leading-relaxed text-base-content/50 lg:text-right">
+              ระบบจะเปิด Gmail ในแท็บใหม่ กรุณาดาวน์โหลดและแนบไฟล์ PDF หรือ Excel เองก่อนส่ง
+            </p>
+          </div>
         </div>
       </div>
 
