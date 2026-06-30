@@ -214,7 +214,7 @@ export default function CaptchaGate() {
         </h2>
 
         <p className="mt-2 text-sm leading-relaxed text-base-content/65">
-          กรุณายืนยันว่าเป็นผู้ใช้งานจริงก่อนใช้ระบบวิเคราะห์โครงการและสกัดข้อมูลแหล่งทุน
+          กรุณายืนยันว่าเป็นผู้ใช้งานจริงก่อนใช้ระบบวิเคราะห์โครงการและวิเคราะห์ข้อมูล
         </p>
 
         <div className="mt-7 flex flex-col items-center gap-4">

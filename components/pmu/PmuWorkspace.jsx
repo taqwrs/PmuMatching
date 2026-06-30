@@ -33,14 +33,14 @@ export default function PmuWorkspace() {
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
                     <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
                   </span>
-                  PMU Matching
+                  WU-FundConnect
                 </span>
               </div>
               <h1 className="mt-1 text-3xl font-bold tracking-tight text-base-content sm:text-4xl">
-                ระบบจับคู่โครงการกับแหล่งทุน
+                ระบบจับคู่โครงการวิจัยกับแหล่งทุนภายนอก
               </h1>
               <p className="mt-1.5 text-base-content/60 max-w-2xl">
-                วิเคราะห์ความเหมาะสมของโครงการ และสกัดข้อมูลประกาศแหล่งทุนด้วย
+                วิเคราะห์ความเหมาะสมของโครงการ และประกาศแหล่งทุนด้วย
                 AI
               </p>
             </div>
@@ -120,7 +120,7 @@ export default function PmuWorkspace() {
                 <polyline points="7 10 12 15 17 10" />
                 <line x1="12" y1="15" x2="12" y2="3" />
               </svg>
-              สกัดข้อมูลแหล่งทุน
+              ฐานข้อมูลแหล่งทุน
             </button>
           </div>
 
@@ -128,7 +128,7 @@ export default function PmuWorkspace() {
           <p className="mt-3 text-center text-xs text-base-content/40">
             {activeTab === TABS.match
               ? "กรอกข้อมูลโครงการเพื่อค้นหาแหล่งทุนที่เหมาะสมที่สุด"
-              : "วางประกาศหรืออัปโหลด PDF เพื่อสกัดข้อมูลสำคัญจากแหล่งทุน"}
+              : "วางประกาศหรืออัปโหลดไฟล์ PDF เพื่อวิเคราะห์ข้อมูลสำคัญของแหล่งทุน PDF เพื่อวิเคราะห์ข้อมูลสำคัญจากแหล่งทุน"}
           </p>
         </div>
 
@@ -144,7 +144,7 @@ export default function PmuWorkspace() {
         {/* Footer */}
         <footer className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-base-200 pt-6 text-xs text-base-content/30">
           <div className="flex items-center gap-4">
-            <span>© 2026 PMU Matching System</span>
+            <span>© 2026 WU-FundConnect System</span>
             <span className="h-3 w-px bg-base-300/30" />
             <span>ใช้ AI ในการวิเคราะห์</span>
           </div>

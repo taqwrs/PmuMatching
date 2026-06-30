@@ -85,7 +85,7 @@ export default function FundingExtractor() {
         url: data.data?.url || url.trim(),
       });
     } catch (requestError) {
-      setError(requestError.message || "เกิดข้อผิดพลาดในการสกัดข้อมูลแหล่งทุน");
+      setError(requestError.message || "เกิดข้อผิดพลาดในการวิเคราะห์ข้อมูล");
     } finally {
       setIsExtracting(false);
     }
@@ -146,13 +146,13 @@ export default function FundingExtractor() {
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-primary/70">
-              ตัวช่วยสกัดข้อมูล
+              ตัวช่วยวิเคราะห์ข้อมูล
             </p>
             <h2 className="mt-0.5 text-2xl font-bold leading-tight text-base-content">
-              สรุปประกาศและกรอบโจทย์ทุน
+              สรุปประกาศและกรอบโจทย์วิจัยของแหล่งทุน
             </h2>
             <p className="mt-1 text-sm text-base-content/60">
-              วางข้อความหรืออัปโหลด PDF เพื่อสกัดข้อมูลสำคัญ
+              วางข้อความหรืออัปโหลด PDF เพื่อวิเคราะห์ข้อมูลสำคัญ
             </p>
           </div>
         </div>
@@ -298,7 +298,7 @@ export default function FundingExtractor() {
           {isExtracting ? (
             <>
               <span className="loading loading-spinner loading-sm" />
-              กำลังสกัดข้อมูล...
+              กำลังวิเคราะห์ข้อมูล...
             </>
           ) : (
             <>
@@ -316,7 +316,7 @@ export default function FundingExtractor() {
                 <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
                 <polyline points="17 6 23 6 23 12" />
               </svg>
-              สกัดข้อมูลแหล่งทุน
+              วิเคราะห์ข้อมูลแหล่งทุน
             </>
           )}
         </button>

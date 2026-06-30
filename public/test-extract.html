@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <body style="font-family:sans-serif; padding:20px; max-width:700px;">
-  <h3>สกัดข้อมูลแหล่งทุน</h3>
+  <h3>วิเคราะห์ข้อมูล</h3>
 
   <label>URL อ้างอิง (ไม่บังคับ)</label><br>
   <input
@@ -80,7 +80,7 @@
     onclick="extractFunding()"
     style="padding:10px 24px; background:#0284c7; color:white; border:none; border-radius:6px; cursor:pointer; margin-top:10px;"
   >
-    สกัดข้อมูล
+    วิเคราะห์ข้อมูล
   </button>
 
   <pre
@@ -251,7 +251,7 @@
       }
 
       button.disabled = true
-      button.textContent = 'กำลังสกัดข้อมูล...'
+      button.textContent = 'กำลังวิเคราะห์ข้อมูล...'
       button.style.background = '#94a3b8'
 
       resultEl.textContent = 'กำลังอ่านข้อความและวิเคราะห์...'
@@ -266,7 +266,7 @@
 
         if (!response.ok || !data.success) {
           resultEl.textContent =
-            `เกิดข้อผิดพลาด: ${data.error || 'ไม่สามารถสกัดข้อมูลได้'}`
+            `เกิดข้อผิดพลาด: ${data.error || 'ไม่สามารถวิเคราะห์ข้อมูลได้'}`
           return
         }
 
@@ -276,7 +276,7 @@
           `เกิดข้อผิดพลาดในการเชื่อมต่อ: ${error.message}`
       } finally {
         button.disabled = false
-        button.textContent = 'สกัดข้อมูล'
+        button.textContent = 'วิเคราะห์ข้อมูล'
         button.style.background = '#0284c7'
       }
     }

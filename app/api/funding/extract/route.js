@@ -257,7 +257,7 @@ async function askGroqToExtract(plainText, today) {
     messages: [
       {
         role: "system",
-        content: `คุณคือระบบสกัดข้อมูลประกาศแหล่งทุนวิจัยภาษาไทย
+        content: `คุณคือระบบวิเคราะห์ข้อมูลประกาศแหล่งทุนวิจัยภาษาไทย
 
 ตอบกลับเป็น JSON object เท่านั้น ห้ามมี Markdown และต้องมีฟิลด์ครบ:
 {
@@ -385,6 +385,6 @@ export async function POST(request) {
       return errorResponse(error.message, error.status);
     }
 
-    return errorResponse("เกิดข้อผิดพลาดในการสกัดข้อมูลแหล่งทุน", 500);
+    return errorResponse("เกิดข้อผิดพลาดในการวิเคราะห์ข้อมูล", 500);
   }
 }

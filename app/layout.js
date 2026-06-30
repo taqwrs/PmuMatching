@@ -1,8 +1,8 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "PMU Matching",
-  description: "ระบบจับคู่โครงการกับแหล่งทุน",
+  title: "WU-FundConnect",
+  description: "ระบบจับคู่โครงการวิจัยกับแหล่งทุนภายนอก",
 };
 
 export default function RootLayout({ children }) {
