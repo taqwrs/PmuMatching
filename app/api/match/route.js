@@ -1,6 +1,10 @@
 import Groq from "groq-sdk";
 import { getSupabase } from "@/lib/supabase";
 import { ensureCaptchaVerified, CaptchaErrorClass } from "@/lib/utils/captcha";
+import {
+  getBangkokDate,
+  getEffectiveFundingStatus,
+} from "@/lib/utils/fundingStatus";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -321,6 +325,30 @@ function logDebugSummary({ fundings, allRawResults, results, allResults, aiResul
 
 // ─── DB layer ─────────────────────────────────────────────────────────────────
 
+async function closeExpiredFundings(supabase, fundings) {
+  const today = getBangkokDate();
+  const expiredFundingIds = fundings
+    .filter((funding) => getEffectiveFundingStatus(funding.status, funding.deadline, today) === "closed")
+    .filter((funding) => funding.status !== "closed")
+    .map((funding) => funding.id);
+
+  if (expiredFundingIds.length > 0) {
+    const { error } = await supabase
+      .from("funding_sources")
+      .update({ status: "closed" })
+      .in("id", expiredFundingIds);
+
+    if (error) {
+      throw new Error(`ไม่สามารถอัปเดตสถานะแหล่งทุนที่หมดเขตได้: ${error.message}`);
+    }
+  }
+
+  return fundings.map((funding) => ({
+    ...funding,
+    status: getEffectiveFundingStatus(funding.status, funding.deadline, today),
+  }));
+}
+
 async function saveMatchResults({ proposalTitle, abstract, results }) {
   const supabase = getSupabase();
 
@@ -374,17 +402,19 @@ export async function POST(request) {
       return Response.json({ success: false, error: "ไม่มีแหล่งทุนที่เปิดรับอยู่ในระบบ" }, { status: 404 });
     }
 
+    const effectiveFundings = await closeExpiredFundings(supabase, fundings);
+
     const { allRawResults, batchDebugSummaries } = await matchAllFundings({
-      fundings,
+      fundings: effectiveFundings,
       abstract: cleanAbstract,
       proposalTitle: cleanProposalTitle,
     });
 
     const { results, allResults, aiResultsByFundingId, invalidAiFundingIds, duplicateAiFundingIds } =
-      buildResults(fundings, allRawResults);
+      buildResults(effectiveFundings, allRawResults);
 
     logDebugSummary({
-      fundings,
+      fundings: effectiveFundings,
       allRawResults,
       results,
       allResults,

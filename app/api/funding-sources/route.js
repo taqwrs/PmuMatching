@@ -1,7 +1,10 @@
 import { getSupabase } from '@/lib/supabase'
 import { ensureCaptchaVerified, CaptchaErrorClass } from '@/lib/utils/captcha'
-
-const ALLOWED_STATUS = ['open', 'closed', 'upcoming']
+import {
+  getBangkokDate,
+  getEffectiveFundingStatus,
+  normalizeFundingStatus,
+} from '@/lib/utils/fundingStatus'
 
 function cleanText(value, maxLength = 5000) {
   if (typeof value !== 'string') return ''
@@ -30,14 +33,6 @@ function isValidIsoDate(value) {
   )
 }
 
-function normalizeStatus(value) {
-  if (typeof value !== 'string') return null
-
-  const status = value.trim().toLowerCase()
-
-  return ALLOWED_STATUS.includes(status) ? status : null
-}
-
 function normalizeUrl(value) {
   const url = cleanText(value, 2000)
 
@@ -64,7 +59,12 @@ export async function POST(request) {
     const name = cleanText(body.name, 500)
     const requirements = cleanText(body.requirements, 5000)
     const deadline = body.deadline || null
-    const status = normalizeStatus(body.status)
+    const today = getBangkokDate()
+    const status = getEffectiveFundingStatus(
+      normalizeFundingStatus(body.status),
+      deadline,
+      today,
+    )
     const url = normalizeUrl(body.url)
 
     if (!name) {
