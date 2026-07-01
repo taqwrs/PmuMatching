@@ -22,11 +22,11 @@ export default function FundingResultCard({
   }
 
   return (
-    <section className="group relative overflow-hidden rounded-2xl border border-base-300 bg-base-100 shadow-sm transition-all duration-300 hover:border-primary/20 hover:shadow-md">
+    <section className="group relative min-w-0 overflow-hidden rounded-2xl border border-base-300 bg-base-100 shadow-sm transition-all duration-300 hover:border-primary/20 hover:shadow-md">
       <div className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-primary via-secondary to-primary/60" />
 
-      <div className="p-6">
-        <div className="flex items-start gap-4">
+      <div className="p-4 sm:p-6">
+        <div className="flex flex-col items-start gap-3 sm:flex-row sm:gap-4">
           <div className="flex min-w-0 flex-1 items-start gap-3">
             <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <svg
@@ -108,8 +108,8 @@ export default function FundingResultCard({
         </div>
 
         {/* กรอบโจทย์ */}
-        <div className="mt-4 rounded-xl bg-base-200/50 p-4">
-          <div className="flex items-start gap-3">
+        <div className="mt-4 rounded-xl bg-base-200/50 p-3 sm:p-4">
+          <div className="flex items-start gap-2 sm:gap-3">
             <span className="mt-0.5 text-base-content/40">
               <svg
                 xmlns="http://www.w3.org/2000/svg"

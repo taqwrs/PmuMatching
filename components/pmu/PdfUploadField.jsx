@@ -90,7 +90,7 @@ export default function PdfUploadField({
 
         {!fileName ? (
           // Empty state
-          <div className="flex flex-col items-center gap-3 p-8">
+          <div className="flex flex-col items-center gap-3 p-5 sm:p-8">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-base-200/80 text-base-content/30 transition-colors group-hover:bg-primary/10 group-hover:text-primary">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -120,7 +120,7 @@ export default function PdfUploadField({
             </div>
             <button
               type="button"
-              className="btn btn-primary btn-sm gap-1.5 shadow-sm shadow-primary/20"
+              className="btn btn-primary btn-sm w-full gap-1.5 shadow-sm shadow-primary/20 sm:w-auto"
               onClick={(e) => {
                 e.stopPropagation();
                 inputRef.current?.click();
@@ -146,7 +146,7 @@ export default function PdfUploadField({
           </div>
         ) : (
           // File selected state
-          <div className="flex items-center gap-4 p-5">
+          <div className="flex flex-col items-stretch gap-4 p-4 sm:flex-row sm:items-center sm:p-5">
             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-base-300 text-base-content/40">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -171,10 +171,10 @@ export default function PdfUploadField({
               </p>
               <p className="mt-0.5 text-sm text-base-content/40">พร้อมใช้งาน</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2 sm:flex-nowrap">
               <button
                 type="button"
-                className="btn btn-ghost btn-sm gap-1.5 text-base-content/40 hover:text-primary"
+                className="btn btn-ghost btn-sm flex-1 gap-1.5 text-base-content/40 hover:text-primary sm:flex-none"
                 onClick={(e) => {
                   e.stopPropagation();
                   inputRef.current?.click();
@@ -199,7 +199,7 @@ export default function PdfUploadField({
               </button>
               <button
                 type="button"
-                className="btn btn-ghost btn-sm gap-1.5 text-base-content/40 hover:text-error"
+                className="btn btn-ghost btn-sm flex-1 gap-1.5 text-base-content/40 hover:text-error sm:flex-none"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleReset();
@@ -227,7 +227,7 @@ export default function PdfUploadField({
       </div>
 
       {/* Supported formats hint */}
-      <div className="mt-2 flex items-center gap-3 text-xs text-base-content/30">
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-base-content/30">
         <span className="inline-flex items-center gap-1">
           <svg
             xmlns="http://www.w3.org/2000/svg"

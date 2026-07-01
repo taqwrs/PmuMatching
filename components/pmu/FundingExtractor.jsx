@@ -129,14 +129,14 @@ export default function FundingExtractor() {
   }
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-base-300 bg-base-100 shadow-lg transition-all duration-300">
+    <section className="relative min-w-0 overflow-hidden rounded-2xl border border-base-300 bg-base-100 shadow-lg transition-all duration-300">
       {/* Decorative linear */}
       <div className="absolute inset-x-0 top-0 h-1.5 bg-linear-to-r from-primary via-secondary to-primary/60" />
       <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
 
-      <div className="relative p-6 sm:p-8">
+      <div className="relative p-4 sm:p-8">
         {/* Header */}
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-3 sm:gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-primary/20 to-primary/5 text-primary shadow-sm">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -154,11 +154,11 @@ export default function FundingExtractor() {
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-wider text-primary/70">
               ตัวช่วยวิเคราะห์ข้อมูล
             </p>
-            <h2 className="mt-0.5 text-2xl font-bold leading-tight text-base-content">
+            <h2 className="mt-0.5 text-xl font-bold leading-tight text-base-content sm:text-2xl">
               สรุปประกาศและกรอบโจทย์วิจัยของแหล่งทุน
             </h2>
             <p className="mt-1 text-sm text-base-content/60">
@@ -207,10 +207,10 @@ export default function FundingExtractor() {
           <span className="block text-sm font-medium text-base-content/70">
             รูปแบบข้อมูล
           </span>
-          <div className="mt-1.5 flex gap-1.5 rounded-xl bg-base-200/50 p-1">
+          <div className="mt-1.5 grid grid-cols-2 gap-1.5 rounded-xl bg-base-200/50 p-1">
             <button
               type="button"
-              className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 ${
+              className={`flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-medium transition-all duration-200 sm:gap-2 sm:px-4 sm:text-sm ${
                 mode === "text"
                   ? "bg-base-100 text-base-content shadow-sm ring-1 ring-base-300/50"
                   : "text-base-content/60 hover:text-base-content hover:bg-base-100/50"
@@ -236,7 +236,7 @@ export default function FundingExtractor() {
             </button>
             <button
               type="button"
-              className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 ${
+              className={`flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-medium transition-all duration-200 sm:gap-2 sm:px-4 sm:text-sm ${
                 mode === "pdf"
                   ? "bg-base-100 text-base-content shadow-sm ring-1 ring-base-300/50"
                   : "text-base-content/60 hover:text-base-content hover:bg-base-100/50"
@@ -301,7 +301,7 @@ export default function FundingExtractor() {
         {/* Submit Button */}
         <button
           type="button"
-          className="btn btn-primary mt-6 w-full h-12 gap-2 text-base shadow-lg shadow-primary/25 transition-all duration-300 hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98]"
+          className="btn btn-primary mt-6 h-12 w-full gap-2 text-sm shadow-lg shadow-primary/25 transition-all duration-300 hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] sm:text-base"
           disabled={isExtracting}
           onClick={handleSubmit}
         >

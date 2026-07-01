@@ -6,6 +6,46 @@ import {
   normalizeFundingStatus,
 } from '@/lib/utils/fundingStatus'
 
+export async function GET() {
+  try {
+    const supabase = getSupabase()
+    const today = getBangkokDate()
+    const { data, error } = await supabase
+      .from('funding_sources')
+      .select('id, name, url, deadline, status')
+      .order('deadline', { ascending: true, nullsFirst: false })
+      .order('name', { ascending: true })
+
+    if (error) {
+      console.error('LIST FUNDING ERROR:', error.message)
+
+      return Response.json(
+        { success: false, error: 'ไม่สามารถโหลดรายการแหล่งทุนได้' },
+        { status: 500 }
+      )
+    }
+
+    const sources = (data || []).map((source) => ({
+      ...source,
+      status: getEffectiveFundingStatus(source.status, source.deadline, today),
+    }))
+
+    return Response.json({
+      success: true,
+      data: sources,
+      total: sources.length,
+      today,
+    })
+  } catch (error) {
+    console.error('LIST FUNDING ERROR:', error)
+
+    return Response.json(
+      { success: false, error: 'ไม่สามารถโหลดรายการแหล่งทุนได้' },
+      { status: 500 }
+    )
+  }
+}
+
 function cleanText(value, maxLength = 5000) {
   if (typeof value !== 'string') return ''
 

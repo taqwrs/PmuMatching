@@ -138,9 +138,9 @@ function openGmailDraft({
   const safeProposalTitle = proposalTitle?.trim() || "ไม่ระบุชื่อโครงการ";
   const subject = `ผลการจับคู่แหล่งทุน: ${safeProposalTitle}`;
   const body = [
-    "เรียน ผู้เกี่ยวข้อง",
+    "เรียน หัวหน้าโครงการ",
     "",
-    "ขอส่งผลการจับคู่แหล่งทุนสำหรับโครงการ:",
+    "ขอส่งผลการวิเคราะห์และจับคู่แหล่งทุนสำหรับโครงการ:",
     safeProposalTitle,
     "",
     `จำนวนผลลัพธ์: ${resultLabel}`,
@@ -153,6 +153,8 @@ function openGmailDraft({
     "แบบประเมินความพึงพอใจ: https://forms.gle/7mxfNYgjmM3SwqHs9",
     "",
     "ขอแสดงความนับถือ",
+    "จรัญ ปัจฉิมเพ็ชร",
+    "7-3553",
   ].join("\n");
 
   const gmailUrl = new URL("https://mail.google.com/mail/");
@@ -287,6 +289,7 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
     : matchedResults.slice(0, 5);
 
   const hiddenCount = Math.max(0, matchedResults.length - 5);
+  const isScrollableList = showAll && matchedResults.length > 5;
   const exportLimitLabel = getReportLimitLabel(exportLimit);
   const exportStatusLabel = getReportStatusFilterLabel(exportStatusFilter);
   const exportableResults = filterResultsByStatus(
@@ -361,8 +364,8 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
 
   return (
     <section className="mt-8">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+      <div className="mb-6 flex flex-col items-stretch justify-between gap-3 lg:flex-row lg:items-center">
+        <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -382,7 +385,7 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
             </svg>
           </div>
 
-          <div>
+          <div className="min-w-0">
             <h2 className="text-xl font-bold leading-tight text-base-content">
               ผลการจับคู่
             </h2>
@@ -393,10 +396,10 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
         </div>
 
         <div className="flex w-full flex-col items-stretch gap-2 lg:w-auto lg:items-end">
-          <div className="flex flex-wrap items-center justify-end gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
             <select
               aria-label="จำนวนรายการที่ส่งออก"
-              className="select select-sm select-bordered w-28"
+              className="select select-sm select-bordered w-full sm:w-28"
               value={exportLimit}
               onChange={(event) => setExportLimit(event.target.value)}
             >
@@ -409,7 +412,7 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
 
             <select
               aria-label="สถานะแหล่งทุนที่ส่งออก"
-              className="select select-sm select-bordered w-36"
+              className="select select-sm select-bordered w-full sm:w-36"
               value={exportStatusFilter}
               onChange={(event) => setExportStatusFilter(event.target.value)}
             >
@@ -487,7 +490,32 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
         </div>
       )}
 
-      <div className="space-y-4">
+      {matchedResults.length > 5 && (
+        <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm font-semibold text-slate-600">
+            {showAll
+              ? `แสดงทั้งหมด ${matchedResults.length.toLocaleString()} รายการ`
+              : `แสดง 5 รายการแรก จากทั้งหมด ${matchedResults.length.toLocaleString()} รายการ`}
+          </p>
+          <button
+            type="button"
+            className="btn btn-outline btn-primary btn-sm"
+            onClick={() => setShowAll((current) => !current)}
+          >
+            {showAll
+              ? "ซ่อนรายการเพิ่มเติม"
+              : `ดูแหล่งทุนเพิ่มเติม ${hiddenCount.toLocaleString()} รายการ`}
+          </button>
+        </div>
+      )}
+
+      <div
+        className={`space-y-4 ${
+          isScrollableList
+            ? "max-h-[min(70vh,52rem)] overflow-y-auto overscroll-contain pr-2"
+            : ""
+        }`}
+      >
         {visibleResults.map((item, index) => {
           const score = Math.round(Number(item.score) || 0);
           const canOpenUrl = isSafeHttpUrl(item.url);
@@ -504,11 +532,11 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
                 )}`}
               />
 
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-start gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-base-200/80 text-sm font-bold text-base-content/60 transition-colors group-hover:bg-base-200">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-base-200/80 text-sm font-bold text-base-content/60 transition-colors group-hover:bg-base-200 sm:h-10 sm:w-10">
                         #{index + 1}
                       </div>
 
@@ -563,7 +591,7 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
                   </div>
 
                   <div
-                    className={`flex shrink-0 items-center gap-4 rounded-2xl px-5 py-3 ring-1 ${getScoreRing(
+                    className={`flex shrink-0 items-center justify-between gap-3 rounded-2xl px-4 py-3 ring-1 sm:justify-start sm:gap-4 sm:px-5 ${getScoreRing(
                       score
                     )}`}
                   >
@@ -657,19 +685,6 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
         })}
       </div>
 
-      {matchedResults.length > 5 && (
-        <div className="mt-6 flex justify-center">
-          <button
-            type="button"
-            className="btn btn-outline btn-primary"
-            onClick={() => setShowAll((current) => !current)}
-          >
-            {showAll
-              ? "ซ่อนรายการเพิ่มเติม"
-              : `ดูแหล่งทุนเพิ่มเติม ${hiddenCount} รายการ`}
-          </button>
-        </div>
-      )}
     </section>
   );
 }

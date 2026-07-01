@@ -70,7 +70,7 @@ export function AppAlertProvider({ children }) {
   return (
     <AlertContext.Provider value={value}>
       {children}
-      <div className="fixed right-3 top-3 z-1000 flex w-1/2 flex-col gap-2 sm:right-4 sm:top-4 lg:w-1/3">
+      <div className="fixed left-3 right-3 top-3 z-1000 flex flex-col gap-2 sm:left-auto sm:right-4 sm:top-4 sm:w-1/2 lg:w-1/3">
         {alerts.map((alert) => (
           <div
             key={alert.id}
