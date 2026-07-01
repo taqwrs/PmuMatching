@@ -4,6 +4,7 @@ import { useState } from "react";
 import ProposalMatcher from "@/components/pmu/ProposalMatcher";
 import FundingExtractor from "@/components/pmu/FundingExtractor";
 import CaptchaGate from "@/components/pmu/CaptchaGate";
+import { AppAlertProvider } from "@/components/pmu/AppAlerts";
 
 const TABS = {
   match: "match",
@@ -14,8 +15,9 @@ export default function PmuWorkspace() {
   const [activeTab, setActiveTab] = useState(TABS.match);
 
   return (
-    <main className="min-h-screen bg-linear-to-b from-base-200/80 to-base-200 px-4 py-6 sm:px-6 lg:py-10">
-      <div className="mx-auto max-w-4xl">
+    <AppAlertProvider>
+      <main className="min-h-screen bg-linear-to-b from-[#fbf7ff] via-[#f7efff] to-[#f1e8ff] px-4 py-6 sm:px-6 lg:py-10">
+        <div className="mx-auto max-w-4xl">
         {/* Header */}
         <header className="mb-8">
           <div className="flex items-center gap-3">
@@ -201,8 +203,9 @@ export default function PmuWorkspace() {
               </svg>
             </button>
           </div>
-        </footer>
-      </div>
-    </main>
+          </footer>
+        </div>
+      </main>
+    </AppAlertProvider>
   );
 }

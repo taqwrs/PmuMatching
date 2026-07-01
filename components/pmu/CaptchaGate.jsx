@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useAppAlert } from "@/components/pmu/AppAlerts";
 
 const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
@@ -46,6 +47,7 @@ function loadRecaptchaScript(onLoad) {
 }
 
 export default function CaptchaGate() {
+  const { showAlert } = useAppAlert();
   const [verified, setVerified] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -54,6 +56,7 @@ export default function CaptchaGate() {
   const containerRef = useRef(null);
   const widgetIdRef = useRef(null);
   const isRenderingRef = useRef(false);
+  const reportedConfigErrorRef = useRef(false);
 
   function resetCaptcha() {
     if (
@@ -64,6 +67,11 @@ export default function CaptchaGate() {
       window.grecaptcha.reset(widgetIdRef.current);
     }
   }
+
+  const showCaptchaError = useCallback((message) => {
+    setError(message);
+    showAlert(message, { type: "error" });
+  }, [showAlert]);
 
   useEffect(() => {
     async function checkStatus() {
@@ -92,9 +100,12 @@ export default function CaptchaGate() {
     if (isRenderingRef.current) return;
 
     if (!RECAPTCHA_SITE_KEY) {
-      setError(
-        "ไม่พบการตั้งค่า reCAPTCHA กรุณาตรวจสอบ environment variables",
-      );
+      if (!reportedConfigErrorRef.current) {
+        reportedConfigErrorRef.current = true;
+        window.setTimeout(() => {
+          showAlert("ไม่พบการตั้งค่า reCAPTCHA กรุณาตรวจสอบ environment variables", { type: "error" });
+        }, 0);
+      }
       return;
     }
 
@@ -132,10 +143,11 @@ export default function CaptchaGate() {
 
                   if (response.ok && data.success) {
                     setVerified(true);
+                    showAlert("ยืนยัน reCAPTCHA สำเร็จ", { type: "success" });
                     return;
                   }
 
-                  setError(
+                  showCaptchaError(
                     data.error || "ไม่สามารถยืนยัน reCAPTCHA ได้",
                   );
 
@@ -146,19 +158,19 @@ export default function CaptchaGate() {
                     requestError,
                   );
 
-                  setError("เกิดข้อผิดพลาดในการยืนยัน reCAPTCHA");
+                  showCaptchaError("เกิดข้อผิดพลาดในการยืนยัน reCAPTCHA");
                   resetCaptcha();
                 }
               },
 
               "error-callback": () => {
-                setError(
+                showCaptchaError(
                   "ไม่สามารถโหลด reCAPTCHA ได้ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่",
                 );
               },
 
               "expired-callback": () => {
-                setError(
+                showCaptchaError(
                   "การยืนยันหมดอายุ กรุณาทำเครื่องหมายใหม่อีกครั้ง",
                 );
 
@@ -172,7 +184,7 @@ export default function CaptchaGate() {
           console.error("reCAPTCHA render error:", renderError);
 
           isRenderingRef.current = false;
-          setError("ไม่สามารถแสดง reCAPTCHA ได้");
+          showCaptchaError("ไม่สามารถแสดง reCAPTCHA ได้");
         }
       };
 
@@ -182,11 +194,16 @@ export default function CaptchaGate() {
         renderWidget();
       }
     });
-  }, [loading, verified, widgetRendered]);
+  }, [loading, showAlert, showCaptchaError, verified, widgetRendered]);
 
   if (loading || verified) {
     return null;
   }
+
+  const configError = !RECAPTCHA_SITE_KEY
+    ? "ไม่พบการตั้งค่า reCAPTCHA กรุณาตรวจสอบ environment variables"
+    : "";
+  const displayError = error || configError;
 
   return (
     <div className="fixed inset-0 z-999 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
@@ -220,7 +237,7 @@ export default function CaptchaGate() {
         <div className="mt-7 flex flex-col items-center gap-4">
           <div ref={containerRef} />
 
-          {error && (
+          {displayError && (
             <div className="alert alert-error w-full text-left text-sm">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -239,7 +256,7 @@ export default function CaptchaGate() {
                 <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
 
-              <span>{error}</span>
+              <span>{displayError}</span>
             </div>
           )}
         </div>

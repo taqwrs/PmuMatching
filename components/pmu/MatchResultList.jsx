@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAppAlert } from "@/components/pmu/AppAlerts";
 import { isSafeHttpUrl } from "@/lib/utils/http";
 import {
   downloadMatchReportExcel,
@@ -268,6 +269,7 @@ function PrintIcon() {
 }
 
 export default function MatchResultList({ results = [], proposalTitle = "" }) {
+  const { showAlert } = useAppAlert();
   const [showAll, setShowAll] = useState(false);
   const [exportError, setExportError] = useState("");
   const [exportLimit, setExportLimit] = useState("3");
@@ -296,7 +298,9 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
   function handleExcelExport() {
     setExportError("");
     if (!exportableResults.length) {
-      setExportError("ไม่พบแหล่งทุนตามสถานะที่เลือกสำหรับส่งออก");
+      const message = "ไม่พบแหล่งทุนตามสถานะที่เลือกสำหรับส่งออก";
+      setExportError(message);
+      showAlert(message, { type: "warning" });
       return;
     }
 
@@ -306,12 +310,15 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
       limit: exportLimit,
       statusFilter: exportStatusFilter,
     });
+    showAlert("ส่งออกรายงาน Excel สำเร็จ", { type: "success" });
   }
 
   function handlePdfExport() {
     setExportError("");
     if (!exportableResults.length) {
-      setExportError("ไม่พบแหล่งทุนตามสถานะที่เลือกสำหรับส่งออก");
+      const message = "ไม่พบแหล่งทุนตามสถานะที่เลือกสำหรับส่งออก";
+      setExportError(message);
+      showAlert(message, { type: "warning" });
       return;
     }
 
@@ -323,8 +330,13 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
     });
 
     if (!opened) {
-      setExportError("ไม่สามารถเปิดหน้าต่างรายงาน PDF ได้ กรุณาอนุญาต popup แล้วลองใหม่");
+      const message = "ไม่สามารถเปิดหน้าต่างรายงาน PDF ได้ กรุณาอนุญาต popup แล้วลองใหม่";
+      setExportError(message);
+      showAlert(message, { type: "error" });
+      return;
     }
+
+    showAlert("เปิดรายงาน PDF สำเร็จ", { type: "success" });
   }
 
   function handleEmailDraft() {
@@ -340,7 +352,11 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
 
     if (!result.ok) {
       setExportError(result.message);
+      showAlert(result.message, { type: "warning" });
+      return;
     }
+
+    showAlert("เปิด Gmail พร้อมร่างข้อความแล้ว", { type: "success" });
   }
 
   return (

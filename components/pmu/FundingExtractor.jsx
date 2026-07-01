@@ -1,11 +1,13 @@
 import { useState } from "react";
 import PdfUploadField from "@/components/pmu/PdfUploadField";
 import FundingResultCard from "@/components/pmu/FundingResultCard";
+import { useAppAlert } from "@/components/pmu/AppAlerts";
 import { createFunding, extractFunding } from "@/lib/api/pmuClient";
 import { MAX_TEXT_CHARS } from "@/lib/constants/pmu";
 import { formatFileSize, validatePdf } from "@/lib/utils/file";
 
 export default function FundingExtractor() {
+  const { showAlert } = useAppAlert();
   const [mode, setMode] = useState("text");
   const [url, setUrl] = useState("");
   const [text, setText] = useState("");
@@ -21,6 +23,11 @@ export default function FundingExtractor() {
     setError("");
     setResult(null);
     setFundingForm(null);
+  }
+
+  function showActionError(message) {
+    setError(message);
+    showAlert(message, { type: "error" });
   }
 
   function changeMode(nextMode) {
@@ -44,24 +51,25 @@ export default function FundingExtractor() {
   function handleFileSelect(selectedFile) {
     const validationError = validatePdf(selectedFile);
     if (validationError) {
-      setError(validationError);
+      showActionError(validationError);
       return;
     }
 
     resetResultState();
     setFile(selectedFile);
+    showAlert("เลือกไฟล์ PDF แล้ว", { type: "info" });
   }
 
   async function handleSubmit() {
     const content = text.trim().slice(0, MAX_TEXT_CHARS);
 
     if (mode === "text" && !content) {
-      setError("กรุณาวางข้อความประกาศแหล่งทุน");
+      showActionError("กรุณาวางข้อความประกาศแหล่งทุน");
       return;
     }
 
     if (mode === "pdf" && !file) {
-      setError("กรุณาเลือกไฟล์ PDF");
+      showActionError("กรุณาเลือกไฟล์ PDF");
       return;
     }
 
@@ -84,8 +92,9 @@ export default function FundingExtractor() {
         status: data.data?.status || "",
         url: data.data?.url || url.trim(),
       });
+      showAlert("วิเคราะห์ข้อมูลแหล่งทุนสำเร็จ", { type: "success" });
     } catch (requestError) {
-      setError(requestError.message || "เกิดข้อผิดพลาดในการวิเคราะห์ข้อมูล");
+      showActionError(requestError.message || "เกิดข้อผิดพลาดในการวิเคราะห์ข้อมูล");
     } finally {
       setIsExtracting(false);
     }
@@ -111,8 +120,9 @@ export default function FundingExtractor() {
 
       // กลับไปโหมดวางข้อความ
       setMode("text");
+      showAlert("บันทึกแหล่งทุนสำเร็จ", { type: "success" });
     } catch (requestError) {
-      setError(requestError.message || "ไม่สามารถบันทึกแหล่งทุนได้");
+      showActionError(requestError.message || "ไม่สามารถบันทึกแหล่งทุนได้");
     } finally {
       setIsSaving(false);
     }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import PdfUploadField from "@/components/pmu/PdfUploadField";
 import MatchResultList from "@/components/pmu/MatchResultList";
+import { useAppAlert } from "@/components/pmu/AppAlerts";
 import { uploadProposalPdf, matchProposal } from "@/lib/api/pmuClient";
 import { MAX_TEXT_CHARS } from "@/lib/constants/pmu";
 import { fileNameWithoutExtension, validatePdf } from "@/lib/utils/file";
@@ -8,6 +9,7 @@ import { fileNameWithoutExtension, validatePdf } from "@/lib/utils/file";
 const initialFileInfo = null;
 
 export default function ProposalMatcher() {
+  const { showAlert } = useAppAlert();
   const [mode, setMode] = useState("text");
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
@@ -21,6 +23,11 @@ export default function ProposalMatcher() {
   function resetResultState() {
     setError("");
     setResults([]);
+  }
+
+  function showActionError(message) {
+    setError(message);
+    showAlert(message, { type: "error" });
   }
 
   function changeMode(nextMode) {
@@ -45,7 +52,7 @@ export default function ProposalMatcher() {
   async function handlePdfSelect(file) {
     const validationError = validatePdf(file);
     if (validationError) {
-      setError(validationError);
+      showActionError(validationError);
       return;
     }
 
@@ -68,9 +75,10 @@ export default function ProposalMatcher() {
       });
 
       setTitle((currentTitle) => currentTitle || fileNameWithoutExtension(resolvedName));
+      showAlert("อ่านไฟล์ PDF สำเร็จ", { type: "success" });
     } catch (requestError) {
       setFileInfo(initialFileInfo);
-      setError(requestError.message || "ไม่สามารถอ่านข้อความจาก PDF ได้");
+      showActionError(requestError.message || "ไม่สามารถอ่านข้อความจาก PDF ได้");
     } finally {
       setIsReadingPdf(false);
     }
@@ -80,7 +88,7 @@ export default function ProposalMatcher() {
     const abstract = text.trim().slice(0, MAX_TEXT_CHARS);
 
     if (!abstract) {
-      setError(
+      showActionError(
         mode === "pdf"
           ? "กรุณาแนบ PDF และรอให้ระบบอ่านข้อความเสร็จ"
           : "กรุณาวางข้อความ Abstract ก่อน"
@@ -96,9 +104,16 @@ export default function ProposalMatcher() {
         abstract,
         proposalTitle: title.trim(),
       });
-      setResults(Array.isArray(data.results) ? data.results : []);
+      const nextResults = Array.isArray(data.results) ? data.results : [];
+      setResults(nextResults);
+      showAlert(
+        nextResults.length
+          ? `วิเคราะห์สำเร็จ พบผลลัพธ์ ${nextResults.length} รายการ`
+          : "วิเคราะห์สำเร็จ แต่ยังไม่พบแหล่งทุนที่ตรงกัน",
+        { type: nextResults.length ? "success" : "warning" }
+      );
     } catch (requestError) {
-      setError(requestError.message || "เกิดข้อผิดพลาดในการวิเคราะห์");
+      showActionError(requestError.message || "เกิดข้อผิดพลาดในการวิเคราะห์");
     } finally {
       setIsMatching(false);
     }
