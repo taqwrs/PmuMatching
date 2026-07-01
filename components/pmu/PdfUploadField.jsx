@@ -58,9 +58,9 @@ export default function PdfUploadField({
         className="block text-sm font-medium text-base-content/70"
       >
         {label}
-        <span className="ml-1.5 text-xs font-normal text-base-content/30">
+        {/* <span className="ml-1.5 text-xs font-normal text-base-content/30">
           (ไม่บังคับ)
-        </span>
+        </span> */}
       </label>
 
       {/* Drop zone */}

@@ -136,25 +136,29 @@ function openGmailDraft({
   }
 
   const safeProposalTitle = proposalTitle?.trim() || "ไม่ระบุชื่อโครงการ";
-  const subject = `ผลการจับคู่แหล่งทุน: ${safeProposalTitle}`;
+
+  const subject =
+    "นำส่งผลวิเคราะห์การจับคู่ข้อเสนอโครงการวิจัยกับแหล่งทุนภายนอกด้วยระบบ WU-FundConnect";
+
   const body = [
     "เรียน หัวหน้าโครงการ",
     "",
-    "ขอส่งผลการวิเคราะห์และจับคู่แหล่งทุนสำหรับโครงการ:",
-    safeProposalTitle,
+    "ตามที่สถาบันส่งเสริมการวิจัยและนวัตกรรมสู่ความเป็นเลิศ ได้ใช้ระบบ WU-FundConnect เพื่อวิเคราะห์การจับคู่ข้อเสนอโครงการวิจัยกับแหล่งทุนภายนอกนั้น",
     "",
-    `จำนวนผลลัพธ์: ${resultLabel}`,
-    `สถานะ: ${statusLabel}`,
-    `จำนวนรายการ: ${resultCount} รายการ`,
+    "บัดนี้ ระบบได้ดำเนินการวิเคราะห์เรียบร้อยแล้ว จึงขอนำส่งผลการวิเคราะห์การจับคู่แหล่งทุนสำหรับโครงการวิจัย เรื่อง",
+    `"${safeProposalTitle}"`,
+    "โดยมีรายละเอียดดังเอกสารแนบ",
     "",
-    "กรุณาดาวน์โหลดรายงาน PDF หรือ Excel จากระบบ และแนบไฟล์ก่อนกดส่งอีเมล",
+    "ทั้งนี้ เพื่อเป็นข้อมูลในการพัฒนาและปรับปรุงระบบ WU-FundConnect ให้มีประสิทธิภาพยิ่งขึ้น จึงใคร่ขอความอนุเคราะห์จากท่านตอบแบบประเมินความพึงพอใจการให้บริการ ได้ที่",
     "",
-    "กรุณาช่วยประเมินความพึงพอใจ",
-    "แบบประเมินความพึงพอใจ: https://forms.gle/7mxfNYgjmM3SwqHs9",
+    "https://forms.gle/7mxfNYgjmM3SwqHs9",
+    "",
+    "จึงเรียนมาเพื่อโปรดทราบ และขอขอบพระคุณในความอนุเคราะห์มา ณ โอกาสนี้",
     "",
     "ขอแสดงความนับถือ",
-    "จรัญ ปัจฉิมเพ็ชร",
-    "7-3553",
+    "ฝ่ายส่งเสริมและบริหารการวิจัย",
+    "สถาบันส่งเสริมการวิจัยและนวัตกรรมสู่ความเป็นเลิศ",
+    "0 7567 3553",
   ].join("\n");
 
   const gmailUrl = new URL("https://mail.google.com/mail/");
@@ -284,9 +288,7 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
 
   if (!matchedResults.length) return null;
 
-  const visibleResults = showAll
-    ? matchedResults
-    : matchedResults.slice(0, 5);
+  const visibleResults = showAll ? matchedResults : matchedResults.slice(0, 5);
 
   const hiddenCount = Math.max(0, matchedResults.length - 5);
   const isScrollableList = showAll && matchedResults.length > 5;
@@ -333,7 +335,8 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
     });
 
     if (!opened) {
-      const message = "ไม่สามารถเปิดหน้าต่างรายงาน PDF ได้ กรุณาอนุญาต popup แล้วลองใหม่";
+      const message =
+        "ไม่สามารถเปิดหน้าต่างรายงาน PDF ได้ กรุณาอนุญาต popup แล้วลองใหม่";
       setExportError(message);
       showAlert(message, { type: "error" });
       return;
@@ -478,7 +481,8 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
               </button>
             </div>
             <p className="text-xs leading-relaxed text-base-content/50 lg:text-right">
-              ระบบจะเปิด Gmail ในแท็บใหม่ กรุณาดาวน์โหลดและแนบไฟล์ PDF หรือ Excel เองก่อนส่ง
+              ระบบจะเปิด Gmail ในแท็บใหม่ กรุณาดาวน์โหลดและแนบไฟล์ PDF หรือ
+              Excel เองก่อนส่ง
             </p>
           </div>
         </div>
@@ -528,7 +532,7 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
             >
               <div
                 className={`absolute inset-x-0 top-0 h-1 ${getScoreBarClass(
-                  score
+                  score,
                 )}`}
               />
 
@@ -548,7 +552,7 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
                         <div className="mt-2 flex flex-wrap items-center gap-2">
                           <span
                             className={`badge badge-sm gap-1 ${getFundingStatusClass(
-                              item.status
+                              item.status,
                             )}`}
                           >
                             <StatusIcon />
@@ -592,13 +596,13 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
 
                   <div
                     className={`flex shrink-0 items-center justify-between gap-3 rounded-2xl px-4 py-3 ring-1 sm:justify-start sm:gap-4 sm:px-5 ${getScoreRing(
-                      score
+                      score,
                     )}`}
                   >
                     <div className="text-right">
                       <p
                         className={`text-3xl font-bold leading-none ${scoreClasses(
-                          score
+                          score,
                         )}`}
                       >
                         {score}%
@@ -684,7 +688,6 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
           );
         })}
       </div>
-
     </section>
   );
 }
