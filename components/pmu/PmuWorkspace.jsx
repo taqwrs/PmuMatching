@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useSyncExternalStore } from "react";
 import ProposalMatcher from "@/components/pmu/ProposalMatcher";
 import FundingExtractor from "@/components/pmu/FundingExtractor";
@@ -69,6 +70,18 @@ function BrandMark() {
   );
 }
 
+function RiieLogoMark() {
+  return (
+    <Image
+      src="/riie-logo.png"
+      alt="Research and Innovation Institute of Excellence"
+      width={512}
+      height={512}
+      className="h-11 w-11 shrink-0 object-contain sm:h-14 sm:w-14"
+    />
+  );
+}
+
 function HeroVisual() {
   return (
     <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[43%] overflow-hidden lg:block">
@@ -92,8 +105,22 @@ function HeroVisual() {
           opacity="0.24"
         />
         <circle cx="168" cy="96" r="18" stroke="currentColor" strokeWidth="5" />
-        <circle cx="333" cy="38" r="28" stroke="currentColor" strokeWidth="2" opacity="0.28" />
-        <circle cx="497" cy="128" r="36" stroke="currentColor" strokeWidth="2" opacity="0.22" />
+        <circle
+          cx="333"
+          cy="38"
+          r="28"
+          stroke="currentColor"
+          strokeWidth="2"
+          opacity="0.28"
+        />
+        <circle
+          cx="497"
+          cy="128"
+          r="36"
+          stroke="currentColor"
+          strokeWidth="2"
+          opacity="0.22"
+        />
       </svg>
 
       <div className="absolute right-24 top-12 flex h-40 w-40 items-center justify-center rounded-full bg-white/70 shadow-2xl shadow-violet-200/80 ring-1 ring-violet-100">
@@ -128,7 +155,7 @@ export default function PmuWorkspace() {
     <AppAlertProvider>
       <main className="min-h-screen overflow-x-hidden bg-[#f7f8ff] text-slate-950">
         <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/85 px-3 py-3 shadow-sm shadow-violet-900/5 backdrop-blur-xl sm:px-6">
-          <div className="mx-auto flex max-w-[1800px] items-center justify-between gap-3">
+          <div className="mx-auto flex max-w-[1800px] items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-3">
               <BrandMark />
               <span className="truncate text-lg font-bold text-[#4639d8] sm:text-2xl">
@@ -136,9 +163,15 @@ export default function PmuWorkspace() {
               </span>
             </div>
 
-            <span className="hidden text-sm font-semibold text-slate-600 sm:inline">
-              Research and Innovation Institute of Excellence
-            </span>
+            <div className="ml-auto flex min-w-0 items-center gap-3 sm:gap-4">
+              <span className="hidden max-w-105 truncate text-right text-xs font-semibold text-slate-600 lg:block xl:text-sm">
+                Research and Innovation Institute of Excellence
+              </span>
+
+              <div className="hidden h-9 w-px bg-slate-200 lg:block" />
+
+              <RiieLogoMark />
+            </div>
           </div>
         </header>
 
@@ -147,7 +180,7 @@ export default function PmuWorkspace() {
           <div className="relative mx-auto max-w-[1800px]">
             <div className="max-w-5xl">
               <h1 className="text-xl font-bold leading-tight tracking-normal text-slate-950 sm:text-3xl lg:text-4xl">
-                ระบบจับคู่โครงการวิจัยกับแหล่งทุนภายนอก
+                ระบบเชื่อมโยงโครงการวิจัยกับแหล่งทุนภายนอก
               </h1>
               <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600 sm:text-lg sm:leading-7">
                 วิเคราะห์ความเหมาะสมของโครงการและประกาศแหล่งทุนด้วย{" "}

@@ -9,15 +9,18 @@ const noto = Noto_Sans_Thai({
 
 export const metadata = {
   title: "WU-FundConnect",
-  description: "ระบบจับคู่โครงการวิจัยกับแหล่งทุนภายนอก",
+  description: "ระบบเชื่อมโยงโครงการวิจัยกับแหล่งทุนภายนอก",
+  icons: {
+    icon: "/riie-logo.png",
+    shortcut: "/riie-logo.png",
+    apple: "/riie-logo.png",
+  },
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="th" data-theme="light">
-      <body className={noto.variable}>
-        {children}
-      </body>
+      <body className={noto.variable}>{children}</body>
     </html>
   );
 }

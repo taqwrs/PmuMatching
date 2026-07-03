@@ -22,13 +22,11 @@ export default function FundingResultCard({
   }
 
   return (
-    <section className="group relative min-w-0 overflow-hidden rounded-2xl border border-base-300 bg-base-100 shadow-sm transition-all duration-300 hover:border-primary/20 hover:shadow-md">
-      <div className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-primary via-secondary to-primary/60" />
-
+    <section className="min-w-0 rounded-2xl border border-violet-100 bg-white shadow-sm transition hover:border-violet-200 hover:shadow-md">
       <div className="p-4 sm:p-6">
         <div className="flex flex-col items-start gap-3 sm:flex-row sm:gap-4">
           <div className="flex min-w-0 flex-1 items-start gap-3">
-            <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <div className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-full bg-violet-100 text-violet-700">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="22"
@@ -46,7 +44,7 @@ export default function FundingResultCard({
             </div>
 
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold uppercase tracking-wider text-primary/70">
+              <p className="text-xs font-bold uppercase tracking-wider text-violet-600">
                 ตรวจสอบก่อนบันทึก
               </p>
 
@@ -55,7 +53,7 @@ export default function FundingResultCard({
 
                 <input
                   type="text"
-                  className="input input-bordered h-11 w-full rounded-xl bg-base-100 px-3 text-base font-semibold shadow-sm transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-base font-bold text-slate-900 shadow-inner shadow-slate-100/70 outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100 disabled:bg-slate-50 disabled:text-slate-500"
                   value={values.name || ""}
                   disabled={!onChange || isSaving}
                   onChange={(event) => updateField("name", event.target.value)}
@@ -65,22 +63,22 @@ export default function FundingResultCard({
             </div>
           </div>
 
-          <span className="badge badge-success badge-outline mt-1 shrink-0 gap-1.5">
+          <span className="mt-1 shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-100">
             บันทึก
           </span>
         </div>
 
-        <div className="my-4 h-px bg-linear-to-r from-transparent via-base-300 to-transparent" />
+        <div className="my-4 h-px bg-linear-to-r from-transparent via-slate-200 to-transparent" />
 
         {/* สถานะ + วันปิดรับ */}
         <div className="grid gap-4 sm:grid-cols-2">
-          <label className="form-control">
-            <span className="label">
-              <span className="label-text font-medium">สถานะ</span>
+          <label>
+            <span className="mb-2 block text-sm font-bold text-slate-800">
+              <span>สถานะ</span>
             </span>
 
             <select
-              className="select select-bordered w-full"
+              className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-800 outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100 disabled:bg-slate-50 disabled:text-slate-500"
               value={values.status || ""}
               disabled={!onChange || isSaving}
               onChange={(event) => updateField("status", event.target.value)}
@@ -92,14 +90,14 @@ export default function FundingResultCard({
             </select>
           </label>
 
-          <label className="form-control">
-            <span className="label">
-              <span className="label-text font-medium">วันปิดรับ</span>
+          <label>
+            <span className="mb-2 block text-sm font-bold text-slate-800">
+              <span>วันปิดรับ</span>
             </span>
 
             <input
               type="date"
-              className="input input-bordered w-full"
+              className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-800 outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100 disabled:bg-slate-50 disabled:text-slate-500"
               value={values.deadline || ""}
               disabled={!onChange || isSaving}
               onChange={(event) => updateField("deadline", event.target.value)}
@@ -108,9 +106,9 @@ export default function FundingResultCard({
         </div>
 
         {/* กรอบโจทย์ */}
-        <div className="mt-4 rounded-xl bg-base-200/50 p-3 sm:p-4">
+        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:p-4">
           <div className="flex items-start gap-2 sm:gap-3">
-            <span className="mt-0.5 text-base-content/40">
+            <span className="mt-0.5 text-slate-400">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -130,12 +128,12 @@ export default function FundingResultCard({
             </span>
 
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium uppercase tracking-wide text-base-content/40">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
                 กรอบโจทย์
               </p>
 
               <textarea
-                className="textarea textarea-bordered mt-2 min-h-36 w-full resize-y text-sm"
+                className="mt-2 min-h-36 w-full resize-y rounded-xl border border-slate-200 bg-white p-4 text-sm leading-6 text-slate-800 outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100 disabled:bg-slate-50 disabled:text-slate-500"
                 value={values.requirements || ""}
                 disabled={!onChange || isSaving}
                 onChange={(event) =>
@@ -150,7 +148,7 @@ export default function FundingResultCard({
         {/* ปุ่มบันทึก */}
         <button
           type="button"
-          className="btn btn-primary mt-6 w-full"
+          className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-[#4d39e8] via-[#7739f4] to-[#ff2e93] px-4 text-sm font-extrabold text-white shadow-lg shadow-violet-600/25 transition hover:brightness-105 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 sm:text-base"
           disabled={!onSave || isSaving}
           onClick={onSave}
         >

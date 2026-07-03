@@ -380,7 +380,7 @@ async function saveMatchResults({ proposalTitle, abstract, results }) {
   const { error: matchError } = await supabase.from("match_results").insert(matchRows);
   if (matchError) {
     console.error("MATCH INSERT ERROR:", matchError.message);
-    throw new Error(`ไม่สามารถบันทึกผลการจับคู่ได้: ${matchError.message}`);
+    throw new Error(`ไม่สามารถบันทึกผลการเชื่อมโยงได้: ${matchError.message}`);
   }
 
   return proposal;

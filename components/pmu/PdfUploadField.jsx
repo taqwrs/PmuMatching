@@ -55,22 +55,22 @@ export default function PdfUploadField({
       {/* Label */}
       <label
         htmlFor={id}
-        className="block text-sm font-medium text-base-content/70"
+        className="mb-2 block text-sm font-bold text-slate-800"
       >
         {label}
-        {/* <span className="ml-1.5 text-xs font-normal text-base-content/30">
+        {/* <span className="ml-1.5 text-xs font-normal text-slate-400">
           (ไม่บังคับ)
         </span> */}
       </label>
 
       {/* Drop zone */}
       <div
-        className={`relative mt-1.5 rounded-2xl border-2 border-dashed transition-all duration-200 ${
+        className={`relative rounded-2xl border-2 border-dashed transition ${
           isDragging
-            ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
+            ? "border-violet-400 bg-violet-50 shadow-lg shadow-violet-100"
             : fileName
-              ? "border-base-300 bg-base-200/60 hover:border-base-content/20"
-              : "border-base-300 bg-base-100/50 hover:border-primary/30 hover:bg-base-100"
+              ? "border-violet-200 bg-violet-50/70 hover:border-violet-300"
+              : "border-slate-200 bg-white hover:border-violet-300 hover:bg-violet-50/40"
         } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
         onClick={disabled ? undefined : handleClick}
         onDrop={disabled ? undefined : handleDrop}
@@ -91,7 +91,7 @@ export default function PdfUploadField({
         {!fileName ? (
           // Empty state
           <div className="flex flex-col items-center gap-3 p-5 sm:p-8">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-base-200/80 text-base-content/30 transition-colors group-hover:bg-primary/10 group-hover:text-primary">
+            <div className="grid h-16 w-16 place-items-center rounded-full bg-violet-100 text-violet-600 transition-colors">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="28"
@@ -109,18 +109,18 @@ export default function PdfUploadField({
               </svg>
             </div>
             <div className="text-center">
-              <p className="font-medium text-base-content">
+              <p className="font-bold text-slate-800">
                 {isDragging
                   ? "วางไฟล์ที่นี่"
                   : "คลิกเพื่อเลือกไฟล์ หรือลากไฟล์มาวาง"}
               </p>
-              <p className="mt-1 text-sm text-base-content/40">
+              <p className="mt-1 text-sm text-slate-500">
                 {description || "รองรับไฟล์ PDF ขนาดไม่เกิน 4 MB"}
               </p>
             </div>
             <button
               type="button"
-              className="btn btn-primary btn-sm w-full gap-1.5 shadow-sm shadow-primary/20 sm:w-auto"
+              className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-violet-700 px-4 text-sm font-bold text-white shadow-sm shadow-violet-600/20 transition hover:bg-violet-800 sm:w-auto"
               onClick={(e) => {
                 e.stopPropagation();
                 inputRef.current?.click();
@@ -147,7 +147,7 @@ export default function PdfUploadField({
         ) : (
           // File selected state
           <div className="flex flex-col items-stretch gap-4 p-4 sm:flex-row sm:items-center sm:p-5">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-base-300 text-base-content/40">
+            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-violet-100 text-violet-600">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="28"
@@ -166,15 +166,15 @@ export default function PdfUploadField({
               </svg>
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate font-medium text-base-content">
+              <p className="truncate font-bold text-slate-800">
                 {fileName}
               </p>
-              <p className="mt-0.5 text-sm text-base-content/40">พร้อมใช้งาน</p>
+              <p className="mt-0.5 text-sm text-slate-500">พร้อมใช้งาน</p>
             </div>
             <div className="flex flex-wrap gap-2 sm:flex-nowrap">
               <button
                 type="button"
-                className="btn btn-ghost btn-sm flex-1 gap-1.5 text-base-content/40 hover:text-primary sm:flex-none"
+                className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-bold text-slate-500 transition hover:bg-white hover:text-violet-700 sm:flex-none"
                 onClick={(e) => {
                   e.stopPropagation();
                   inputRef.current?.click();
@@ -199,7 +199,7 @@ export default function PdfUploadField({
               </button>
               <button
                 type="button"
-                className="btn btn-ghost btn-sm flex-1 gap-1.5 text-base-content/40 hover:text-error sm:flex-none"
+                className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-bold text-slate-500 transition hover:bg-white hover:text-red-600 sm:flex-none"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleReset();
@@ -227,7 +227,7 @@ export default function PdfUploadField({
       </div>
 
       {/* Supported formats hint */}
-      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-base-content/30">
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-slate-400">
         <span className="inline-flex items-center gap-1">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -245,7 +245,7 @@ export default function PdfUploadField({
           </svg>
           รองรับ PDF
         </span>
-        <span className="h-3 w-px bg-base-300/30" />
+        <span className="h-3 w-px bg-slate-200" />
         <span className="inline-flex items-center gap-1">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -265,7 +265,7 @@ export default function PdfUploadField({
           </svg>
           ขนาดสูงสุด 4 MB
         </span>
-        <span className="h-3 w-px bg-base-300/30" />
+        <span className="h-3 w-px bg-slate-200" />
         <span className="inline-flex items-center gap-1">
           <svg
             xmlns="http://www.w3.org/2000/svg"

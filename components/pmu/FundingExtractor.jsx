@@ -4,7 +4,7 @@ import FundingResultCard from "@/components/pmu/FundingResultCard";
 import { useAppAlert } from "@/components/pmu/AppAlerts";
 import { createFunding, extractFunding } from "@/lib/api/pmuClient";
 import { MAX_TEXT_CHARS } from "@/lib/constants/pmu";
-import { formatFileSize, validatePdf } from "@/lib/utils/file";
+import { validatePdf } from "@/lib/utils/file";
 
 export default function FundingExtractor() {
   const { showAlert } = useAppAlert();
@@ -129,19 +129,15 @@ export default function FundingExtractor() {
   }
 
   return (
-    <section className="relative min-w-0 overflow-hidden rounded-2xl border border-base-300 bg-base-100 shadow-lg transition-all duration-300">
-      {/* Decorative linear */}
-      <div className="absolute inset-x-0 top-0 h-1.5 bg-linear-to-r from-primary via-secondary to-primary/60" />
-      <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
-
-      <div className="relative p-4 sm:p-8">
+    <section className="min-w-0 rounded-2xl border border-violet-100 bg-white p-4 shadow-sm sm:p-7 lg:p-8">
+      <div>
         {/* Header */}
         <div className="flex items-start gap-3 sm:gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-primary/20 to-primary/5 text-primary shadow-sm">
+          <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-linear-to-br from-[#4c39e8] to-[#b95cff] text-white shadow-lg shadow-violet-500/30">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
+              width="26"
+              height="26"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -155,28 +151,28 @@ export default function FundingExtractor() {
             </svg>
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wider text-primary/70">
+            <p className="text-xs font-bold uppercase tracking-wider text-violet-600">
               ตัวช่วยวิเคราะห์ข้อมูล
             </p>
-            <h2 className="mt-0.5 text-xl font-bold leading-tight text-base-content sm:text-2xl">
+            <h2 className="mt-0.5 text-xl font-extrabold leading-tight text-slate-950 sm:text-2xl">
               สรุปประกาศและกรอบโจทย์วิจัยของแหล่งทุน
             </h2>
-            <p className="mt-1 text-sm text-base-content/60">
+            <p className="mt-1 text-sm leading-6 text-slate-500">
               วางข้อความหรืออัปโหลด PDF เพื่อวิเคราะห์ข้อมูลสำคัญ
             </p>
           </div>
         </div>
 
         {/* URL Input */}
-        <div className="mt-6">
-          <label className="block text-sm font-medium text-base-content/70">
+        <div className="mt-7">
+          <label className="mb-2 block text-sm font-bold text-slate-800">
             URL อ้างอิง
-            <span className="ml-1.5 text-xs font-normal text-base-content/40">
+            <span className="ml-1.5 text-xs font-medium text-slate-400">
               (ไม่บังคับ)
             </span>
           </label>
-          <div className="relative mt-1.5">
-            <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-base-content/30">
+          <div className="relative">
+            <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"
@@ -194,7 +190,7 @@ export default function FundingExtractor() {
             </span>
             <input
               type="url"
-              className="w-full rounded-xl border border-base-300 bg-base-100/50 pl-10 pr-4 py-2.5 text-sm transition-all duration-200 focus:border-primary/50 focus:bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-800 shadow-inner shadow-slate-100/70 outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
               value={url}
               onChange={(event) => setUrl(event.target.value)}
               placeholder="https://example.org/funding-announcement"
@@ -204,16 +200,16 @@ export default function FundingExtractor() {
 
         {/* Mode Selector */}
         <div className="mt-6">
-          <span className="block text-sm font-medium text-base-content/70">
+          <span className="mb-2 block text-sm font-bold text-slate-800">
             รูปแบบข้อมูล
           </span>
-          <div className="mt-1.5 grid grid-cols-2 gap-1.5 rounded-xl bg-base-200/50 p-1">
+          <div className="grid grid-cols-2 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 p-1">
             <button
               type="button"
-              className={`flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-medium transition-all duration-200 sm:gap-2 sm:px-4 sm:text-sm ${
+              className={`flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-bold transition sm:gap-2 sm:text-sm ${
                 mode === "text"
-                  ? "bg-base-100 text-base-content shadow-sm ring-1 ring-base-300/50"
-                  : "text-base-content/60 hover:text-base-content hover:bg-base-100/50"
+                  ? "bg-white text-violet-700 shadow-sm ring-1 ring-violet-400"
+                  : "text-slate-500 hover:bg-white hover:text-slate-800"
               }`}
               onClick={() => changeMode("text")}
             >
@@ -236,10 +232,10 @@ export default function FundingExtractor() {
             </button>
             <button
               type="button"
-              className={`flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-medium transition-all duration-200 sm:gap-2 sm:px-4 sm:text-sm ${
+              className={`flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-bold transition sm:gap-2 sm:text-sm ${
                 mode === "pdf"
-                  ? "bg-base-100 text-base-content shadow-sm ring-1 ring-base-300/50"
-                  : "text-base-content/60 hover:text-base-content hover:bg-base-100/50"
+                  ? "bg-white text-violet-700 shadow-sm ring-1 ring-violet-400"
+                  : "text-slate-500 hover:bg-white hover:text-slate-800"
               }`}
               onClick={() => changeMode("pdf")}
             >
@@ -268,17 +264,17 @@ export default function FundingExtractor() {
         <div className="mt-6">
           {mode === "text" ? (
             <div>
-              <label className="block text-sm font-medium text-base-content/70">
+              <label className="mb-2 block text-sm font-bold text-slate-800">
                 ประกาศหรือกรอบโจทย์แหล่งทุน
               </label>
-              <div className="relative mt-1.5">
+              <div className="relative">
                 <textarea
-                  className="min-h-52 w-full rounded-xl border border-base-300 bg-base-100/50 p-4 text-sm transition-all duration-200 focus:border-primary/50 focus:bg-base-100 focus:outline-none focus:ring-2 focus:ring-primary/20 resize-y"
+                  className="min-h-44 w-full resize-y rounded-xl border border-slate-200 bg-white p-4 pb-10 text-sm leading-6 text-slate-800 shadow-inner shadow-slate-100/70 outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100 sm:min-h-52"
                   value={text}
                   onChange={(event) => setText(event.target.value)}
                   placeholder="วางประกาศหรือกรอบโจทย์แหล่งทุนที่นี่..."
                 />
-                <div className="absolute bottom-3 right-3 text-xs text-base-content/30">
+                <div className="absolute bottom-3 right-4 text-xs text-slate-400">
                   {text.length.toLocaleString()} /{" "}
                   {MAX_TEXT_CHARS.toLocaleString()} ตัวอักษร
                 </div>
@@ -301,7 +297,7 @@ export default function FundingExtractor() {
         {/* Submit Button */}
         <button
           type="button"
-          className="btn btn-primary mt-6 h-12 w-full gap-2 text-sm shadow-lg shadow-primary/25 transition-all duration-300 hover:shadow-primary/40 hover:scale-[1.02] active:scale-[0.98] sm:text-base"
+          className="mt-6 flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-[#4d39e8] via-[#7739f4] to-[#ff2e93] px-4 text-sm font-extrabold text-white shadow-lg shadow-violet-600/25 transition hover:brightness-105 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 sm:px-5 sm:text-base"
           disabled={isExtracting}
           onClick={handleSubmit}
         >
@@ -333,7 +329,7 @@ export default function FundingExtractor() {
 
         {/* Error */}
         {error && (
-          <div className="mt-4 flex items-start gap-3 rounded-xl bg-error/5 p-4 border border-error/20 text-error">
+          <div className="mt-4 flex items-start gap-3 rounded-xl border border-red-100 bg-red-50 p-4 text-red-700">
             <span className="mt-0.5 shrink-0">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
