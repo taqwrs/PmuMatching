@@ -273,6 +273,9 @@ export default function PmuWorkspace() {
           <footer className="flex flex-col gap-3 px-1 py-5 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
             {/* <span className="font-semibold text-slate-600">WU-FundConnect</span> */}
             <span>© 2026 Walailak University. All rights reserved.</span>
+            <span className="max-w-2xl text-slate-500 sm:text-right">
+              ระบบใช้ AI เพื่อช่วยวิเคราะห์เบื้องต้น ผลลัพธ์ควรได้รับการตรวจสอบโดยผู้ใช้งานก่อนนำไปประกอบการตัดสินใจ
+            </span>
             {/* <div className="flex flex-wrap gap-x-6 gap-y-2">
               <button type="button" className="hover:text-violet-700">
                 นโยบายความเป็นส่วนตัว

@@ -274,6 +274,42 @@ function PrintIcon() {
   );
 }
 
+function AiEthicsNotice() {
+  return (
+    <aside className="mt-5 rounded-xl border border-sky-100 bg-sky-50 p-4 text-sm leading-relaxed text-sky-950">
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-700">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z" />
+            <path d="M9 12l2 2 4-4" />
+          </svg>
+        </span>
+        <div>
+          <p className="font-semibold text-sky-900">
+            หมายเหตุด้านจริยธรรมการใช้ AI
+          </p>
+          <p className="mt-1 text-sky-900/80">
+            ผลลัพธ์นี้สร้างด้วย AI เพื่อช่วยคัดกรองเบื้องต้นเท่านั้น
+            ผู้ใช้งานควรตรวจสอบข้อมูลกับประกาศทุนฉบับจริง
+            ใช้วิจารณญาณก่อนตัดสินใจ และหลีกเลี่ยงการนำข้อมูลส่วนบุคคลหรือข้อมูลอ่อนไหวที่ไม่จำเป็นเข้าสู่ระบบ
+          </p>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
 export default function MatchResultList({ results = [], proposalTitle = "" }) {
   const { showAlert } = useAppAlert();
   const [showAll, setShowAll] = useState(false);
@@ -688,6 +724,8 @@ export default function MatchResultList({ results = [], proposalTitle = "" }) {
           );
         })}
       </div>
+
+      <AiEthicsNotice />
     </section>
   );
 }
