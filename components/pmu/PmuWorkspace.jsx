@@ -201,7 +201,7 @@ export default function PmuWorkspace() {
                 type="button"
                 role="tab"
                 aria-selected={activeTab === TABS.match}
-                className={`relative flex min-w-0 items-center justify-center gap-1.5 px-2 py-4 text-xs font-bold transition-colors sm:gap-2 sm:px-4 sm:py-5 sm:text-base ${
+                className={`relative flex min-w-0 items-center justify-center gap-1.5 px-2 py-4 text-xs font-bold transition-colors sm:gap-2 sm:px-4 sm:py-5 sm:text-lg ${
                   activeTab === TABS.match
                     ? "text-violet-700"
                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
@@ -232,7 +232,7 @@ export default function PmuWorkspace() {
                 type="button"
                 role="tab"
                 aria-selected={activeTab === TABS.funding}
-                className={`relative flex min-w-0 items-center justify-center gap-1.5 px-2 py-4 text-xs font-bold transition-colors sm:gap-2 sm:px-4 sm:py-5 sm:text-base ${
+                className={`relative flex min-w-0 items-center justify-center gap-1.5 px-2 py-4 text-xs font-bold transition-colors sm:gap-2 sm:px-4 sm:py-5 sm:text-lg ${
                   activeTab === TABS.funding
                     ? "text-violet-700"
                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
