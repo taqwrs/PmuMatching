@@ -1,9 +1,9 @@
 import { extractText, getDocumentProxy } from 'unpdf'
+import { MAX_PDF_BYTES } from '@/lib/constants/pmu'
 import { ensureCaptchaVerified, CaptchaErrorClass } from '@/lib/utils/captcha'
 
 export const runtime = 'nodejs'
 
-const MAX_PDF_BYTES = 10 * 1024 * 1024
 const MAX_TEXT_CHARS = 12000
 
 class AppError extends Error {
@@ -46,7 +46,7 @@ async function getPdfBuffer(file) {
   }
 
   if (file.size > MAX_PDF_BYTES) {
-    throw new AppError('ไฟล์มีขนาดใหญ่เกิน 10 MB', 413)
+    throw new AppError('ไฟล์มีขนาดใหญ่เกิน 4 MB', 413)
   }
 
   const buffer = Buffer.from(await file.arrayBuffer())
