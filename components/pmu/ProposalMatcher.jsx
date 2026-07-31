@@ -72,6 +72,7 @@ export default function ProposalMatcher() {
   const [isLoadingFundingSources, setIsLoadingFundingSources] = useState(true);
   const [fundingSourcesError, setFundingSourcesError] = useState("");
   const isMountedRef = useRef(false);
+  const fileDerivedTitleRef = useRef("");
   const hasResults = results.length > 0;
 
   useEffect(() => {
@@ -147,27 +148,44 @@ export default function ProposalMatcher() {
     showAlert(message, { type: "error" });
   }
 
-  function changeMode(nextMode) {
-    setMode(nextMode);
+  function clearPdfState({ resetInput = false } = {}) {
+    setText("");
+    setFileInfo(initialFileInfo);
+    setIsReadingPdf(false);
     resetResultState();
 
-    if (nextMode === "text") {
-      setFileInfo(initialFileInfo);
+    const fileDerivedTitle = fileDerivedTitleRef.current;
+    if (fileDerivedTitle) {
+      setTitle((currentTitle) =>
+        currentTitle === fileDerivedTitle ? "" : currentTitle,
+      );
+      fileDerivedTitleRef.current = "";
+    }
+
+    if (resetInput) {
       setFileInputKey((key) => key + 1);
+    }
+  }
+
+  function changeMode(nextMode) {
+    setMode(nextMode);
+
+    if (nextMode === "text") {
+      clearPdfState({ resetInput: true });
     } else {
-      setText("");
+      clearPdfState();
     }
   }
 
   async function handlePdfSelect(file) {
+    clearPdfState();
+
     const validationError = validatePdf(file);
     if (validationError) {
       showActionError(validationError);
       return;
     }
 
-    resetResultState();
-    setText("");
     setFileInfo({ name: file.name, pages: null, chars: null, pending: true });
     setIsReadingPdf(true);
 
@@ -184,9 +202,13 @@ export default function ProposalMatcher() {
         pending: false,
       });
 
-      setTitle(
-        (currentTitle) => currentTitle || fileNameWithoutExtension(resolvedName),
-      );
+      const fileDerivedTitle = fileNameWithoutExtension(resolvedName);
+      setTitle((currentTitle) => {
+        if (currentTitle) return currentTitle;
+
+        fileDerivedTitleRef.current = fileDerivedTitle;
+        return fileDerivedTitle;
+      });
       showAlert("อ่านไฟล์ PDF สำเร็จ", { type: "success" });
     } catch (requestError) {
       setFileInfo(initialFileInfo);
@@ -270,7 +292,12 @@ export default function ProposalMatcher() {
                 className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 pr-16 text-sm text-slate-800 shadow-inner shadow-slate-100/70 outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
                 value={title}
                 maxLength={150}
-                onChange={(event) => setTitle(event.target.value)}
+                onChange={(event) => {
+                  setTitle(event.target.value);
+                  if (event.target.value !== fileDerivedTitleRef.current) {
+                    fileDerivedTitleRef.current = "";
+                  }
+                }}
                 placeholder="เช่น โครงการพัฒนา AI เพื่อการเกษตรอัจฉริยะ"
               />
               <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400">
@@ -379,6 +406,7 @@ export default function ProposalMatcher() {
                   description="รองรับ PDF ที่คัดลอกข้อความได้ ขนาดไม่เกิน 4 MB"
                   disabled={isReadingPdf || isMatching}
                   onFileSelect={handlePdfSelect}
+                  onFileClear={() => clearPdfState()}
                 />
 
                 {fileInfo && !fileInfo.pending && (

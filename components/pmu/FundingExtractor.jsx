@@ -44,18 +44,22 @@ export default function FundingExtractor() {
 
   function resetFile() {
     setFile(null);
+    setText("");
     setFileInputKey((key) => key + 1);
     resetResultState();
   }
 
   function handleFileSelect(selectedFile) {
+    setFile(null);
+    setText("");
+    resetResultState();
+
     const validationError = validatePdf(selectedFile);
     if (validationError) {
       showActionError(validationError);
       return;
     }
 
-    resetResultState();
     setFile(selectedFile);
     showAlert("เลือกไฟล์ PDF แล้ว", { type: "info" });
   }
@@ -289,6 +293,7 @@ export default function FundingExtractor() {
                 description="รองรับ PDF ที่คัดลอกข้อความได้ ขนาดไม่เกิน 4 MB"
                 disabled={isExtracting}
                 onFileSelect={handleFileSelect}
+                onFileClear={resetFile}
               />
             </div>
           )}

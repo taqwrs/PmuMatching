@@ -6,6 +6,7 @@ export default function PdfUploadField({
   description,
   disabled,
   onFileSelect,
+  onFileClear,
 }) {
   const inputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -48,6 +49,7 @@ export default function PdfUploadField({
     if (inputRef.current) {
       inputRef.current.value = "";
     }
+    onFileClear?.();
   };
 
   return (
