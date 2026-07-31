@@ -11,11 +11,11 @@ export const maxDuration = 300;
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const GROQ_MODEL = "groq/compound";
+const GROQ_MODEL = "llama-3.3-70b-versatile";
 const MAX_ABSTRACT_CHARS = 12000;
 const GROQ_TIMEOUT_MS = 60000;
 const MIN_SCORE_TO_SAVE = 1;
-const MATCH_BATCH_SIZE = 10;
+const MATCH_BATCH_SIZE = 5;
 const MATCH_BATCH_RETRY_LIMIT = 1;
 const DEFAULT_PROPOSAL_TITLE = "Untitled proposal";
 
