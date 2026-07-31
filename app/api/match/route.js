@@ -11,7 +11,7 @@ export const maxDuration = 300;
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const GROQ_MODEL = "llama-3.1-8b-instant";
+const GROQ_MODEL = "llama-3.3-70b-versatile";
 const MAX_ABSTRACT_CHARS = 12000;
 const GROQ_TIMEOUT_MS = 60000;
 const MIN_SCORE_TO_SAVE = 1;
