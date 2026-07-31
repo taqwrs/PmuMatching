@@ -1,18 +1,12 @@
-import Groq from "groq-sdk";
 import { extractText, getDocumentProxy } from "unpdf";
 import { MAX_PDF_BYTES } from "@/lib/constants/pmu";
+import { generateGeminiJson } from "@/lib/gemini";
 import { ensureCaptchaVerified, CaptchaErrorClass } from "@/lib/utils/captcha";
 
 export const runtime = "nodejs";
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
-
-const GROQ_MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
-
 const MAX_SOURCE_CHARS = 8000;
-const GROQ_TIMEOUT_MS = 60000;
+const AI_TIMEOUT_MS = 60000;
 
 class AppError extends Error {
   constructor(message, status = 400) {
@@ -246,15 +240,12 @@ function normalizeExtractedData(raw, today, plainText) {
   };
 }
 
-async function askGroqToExtract(plainText, today) {
-  const groqPromise = groq.chat.completions.create({
-    model: GROQ_MODEL,
-    temperature: 0.1,
-    max_completion_tokens: 2000,
-    response_format: {
-      type: "json_object",
-    },
-    messages: [
+async function askAiToExtract(plainText, today) {
+  try {
+    return await generateGeminiJson({
+      maxOutputTokens: 2000,
+      timeoutMs: AI_TIMEOUT_MS,
+      messages: [
       {
         role: "system",
         content: `คุณคือระบบวิเคราะห์ข้อมูลประกาศแหล่งทุนวิจัยภาษาไทย
@@ -289,21 +280,13 @@ async function askGroqToExtract(plainText, today) {
 ${plainText}
 </source_text>`,
       },
-    ],
-  });
-
-  let timeoutId;
-
-  const timeoutPromise = new Promise((_, reject) => {
-    timeoutId = setTimeout(() => {
-      reject(new AppError("AI ใช้เวลานานเกินกำหนด กรุณาลองใหม่อีกครั้ง", 504));
-    }, GROQ_TIMEOUT_MS);
-  });
-
-  try {
-    return await Promise.race([groqPromise, timeoutPromise]);
-  } finally {
-    clearTimeout(timeoutId);
+      ],
+    });
+  } catch (error) {
+    if (error?.message === "AI ใช้เวลานานเกินกำหนด") {
+      throw new AppError("AI ใช้เวลานานเกินกำหนด กรุณาลองใหม่อีกครั้ง", 504);
+    }
+    throw error;
   }
 }
 
@@ -348,9 +331,9 @@ export async function POST(request) {
 
     const today = getBangkokDate();
 
-    const completion = await askGroqToExtract(plainText, today);
+    const completion = await askAiToExtract(plainText, today);
 
-    const modelContent = completion.choices?.[0]?.message?.content;
+    const modelContent = completion.content;
 
     if (!modelContent) {
       throw new AppError("AI ไม่ส่งผลลัพธ์กลับมา", 502);

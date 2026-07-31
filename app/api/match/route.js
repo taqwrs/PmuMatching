@@ -1,5 +1,5 @@
-import Groq from "groq-sdk";
 import { getSupabase } from "@/lib/supabase";
+import { generateGeminiJson } from "@/lib/gemini";
 import { ensureCaptchaVerified, CaptchaErrorClass } from "@/lib/utils/captcha";
 import {
   getBangkokDate,
@@ -11,17 +11,12 @@ export const maxDuration = 300;
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const GROQ_MODEL = "llama-3.3-70b-versatile";
 const MAX_ABSTRACT_CHARS = 12000;
-const GROQ_TIMEOUT_MS = 60000;
+const AI_TIMEOUT_MS = 60000;
 const MIN_SCORE_TO_SAVE = 1;
 const MATCH_BATCH_SIZE = 5;
 const MATCH_BATCH_RETRY_LIMIT = 1;
 const DEFAULT_PROPOSAL_TITLE = "Untitled proposal";
-
-// ─── Groq client ──────────────────────────────────────────────────────────────
-
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 // ─── Pure helpers ─────────────────────────────────────────────────────────────
 
@@ -122,24 +117,16 @@ function buildUserPrompt({ proposalTitle, abstract, batchIndex, totalBatches, fu
 
 // ─── AI layer ─────────────────────────────────────────────────────────────────
 
-async function callGroqWithTimeout(messages) {
-  const groqPromise = groq.chat.completions.create({
-    model: GROQ_MODEL,
-    temperature: 0.2,
-    max_completion_tokens: 2000,
-    response_format: { type: "json_object" },
+async function callAiWithTimeout(messages) {
+  return generateGeminiJson({
     messages,
+    maxOutputTokens: 2000,
+    timeoutMs: AI_TIMEOUT_MS,
   });
-
-  const timeoutPromise = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error("AI ใช้เวลานานเกินกำหนด")), GROQ_TIMEOUT_MS),
-  );
-
-  return Promise.race([groqPromise, timeoutPromise]);
 }
 
-function parseGroqResponse(completion) {
-  const content = completion.choices?.[0]?.message?.content;
+function parseAiResponse(completion) {
+  const content = completion.content;
   if (!content) throw new Error("AI ไม่ส่งผลลัพธ์กลับมา");
 
   let parsed;
@@ -181,8 +168,8 @@ async function matchFundingBatch({ batchFundings, batchIndex, totalBatches, abst
     ];
 
     try {
-      const completion = await callGroqWithTimeout(messages);
-      const { results, usage } = parseGroqResponse(completion);
+      const completion = await callAiWithTimeout(messages);
+      const { results, usage } = parseAiResponse(completion);
 
       for (const item of results) {
         const fundingId = String(item?.funding_id || "").trim();
