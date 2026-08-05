@@ -291,7 +291,7 @@ export default function ProposalMatcher() {
                 type="text"
                 className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 pr-16 text-sm text-slate-800 shadow-inner shadow-slate-100/70 outline-none transition focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
                 value={title}
-                maxLength={150}
+                maxLength={300}
                 onChange={(event) => {
                   setTitle(event.target.value);
                   if (event.target.value !== fileDerivedTitleRef.current) {
@@ -301,7 +301,7 @@ export default function ProposalMatcher() {
                 placeholder="เช่น โครงการพัฒนา AI เพื่อการเกษตรอัจฉริยะ"
               />
               <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400">
-                {title.length} / 150
+                {title.length} / 300
               </span>
             </div>
           </div>
